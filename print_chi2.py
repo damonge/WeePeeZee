@@ -104,7 +104,7 @@ print ("Chi2 wrt to naive + Taylor = ",np.dot(di,np.dot(prec,di)))
 # Implementation of the new precision matrix from Eq. 7 in the HSC Nz marg overleaf
 # NB: the T matrix here is the transpose of what is written in the equations there
 # assume this is a good proxy for the prior for now
-prior = np.diag(1./(2.*dNz**2))
+prior = np.diag(1./(dNz**2))
 # The expressions inside the bracket, before the bracket and after the bracket
 bracket = np.linalg.inv((np.dot(np.dot(Tmat,prec),Tmat.T)+prior))
 prebracket = np.dot(prec,Tmat.T)
@@ -113,5 +113,22 @@ postbracket = np.dot(Tmat,prec)
 prec_new = prec - np.dot(np.dot(prebracket,bracket),postbracket)
 # Report the new chi2
 print ("Chi2 wrt to naive + Taylor + new precision = ",np.dot(di,np.dot(prec_new,di)))
+
+# Check if positive definite
+def is_pos_def(x):
+    return np.all(np.linalg.eigvals(x) > 0)
+
+print("Prec is pos def? ",is_pos_def(prec))
+print("New prec pos def? ",is_pos_def(prec_new))
+
+# Determinant ratio
+#prec = np.linalg.inv(prec)
+#prec_new = np.linalg.inv(prec_new)
+
+log_det_prec = np.linalg.slogdet(prec)[1]
+log_det_prec_new = np.linalg.slogdet(prec_new)[1]
+ratio_det = log_det_prec-log_det_prec_new
+ratio_det = np.exp(ratio_det)
+print("ratio of det of old prec to new prec = ", ratio_det)
 
 # TODO: insert the smoothness; account for the COSMOS bias; run HSC chains anew
