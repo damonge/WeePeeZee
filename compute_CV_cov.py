@@ -26,37 +26,20 @@ def get_nz_from_photoz_bins(weights_fn,zp_code,zp_ini,zp_end,zt_edges,zt_nbins):
     return nz, z_bins, ngal, mean, sigma
 
 
-def compute_covmat_cv(z_bin_ini,z_bin_end,z_ini_sample,z_end_sample,N_zsamples_theo):
+def compute_covmat_cv(cosmo,zm,dndz):
     # Area COSMOS
     area_deg2 = 1.7
     area_rad2 = area_deg2*(np.pi/180)**2
     theta_rad = np.sqrt(area_rad2/np.pi)
-    # COSMOS weights
-    w_fn = "data/cosmos_weights.fits"
+    # TODO: Where do we get the area
 
-    # dN/dz, z-bin edges, total number of galaxies
-    dndz,zb,ngals,z_mean,z_sigma = get_nz_from_photoz_bins(weights_fn = w_fn,zp_code = 'pz_best_eab',
-                                            zp_ini=z_bin_ini, zp_end=z_bin_end, # Bin edges              
-                                            zt_edges=(z_ini_sample, z_end_sample), # Sampling range      
-                                            zt_nbins=N_zsamples_theo)
-
-    # Setting up cosmology
-    cosmo = ccl.Cosmology(Omega_c = 0.26066676,
-                        Omega_b = 0.048974682,
-                        h = 0.6766,
-                        sigma8 = 0.8102,
-                        n_s = 0.9665,
-                        mass_function = 'tinker')
-    print(ccl.sigma8(cosmo))
-
-    # Bin centers
-    zm = 0.5*(zb[1:]+zb[:-1])
     # Bin widths
-    dz = zb[1:]-zb[:-1]
+    dz = np.mean(zm[1:]-zm[:-1])
     # Number of galaxies in each bin
-    dn_noisy = dndz*dz
-    # Smooth fit to it # ASK B.H.
-    dn = np.amax(dn_noisy)/(1+(np.abs(zm-z_mean)/(0.25*z_sigma))**2.7)
+    dn = dndz*dz
+    # z bin edges
+    zb = np.append((zm-dz/2.),zm[-1]+dz/2.)
+    
     # Comoving distance to bin edges
     chis = ccl.comoving_radial_distance(cosmo,1./(1+zb))
     # Mean comoving distance in each bin
@@ -74,8 +57,6 @@ def compute_covmat_cv(z_bin_ini,z_bin_end,z_ini_sample,z_end_sample,N_zsamples_t
     # Parallel k bins
     n_kp = 512
 
-
-    plt.plot(zm,dn_noisy,'k-')
     plt.plot(zm,dn,'b-')
     plt.savefig('N_z.png')
     plt.close()

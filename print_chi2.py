@@ -39,7 +39,10 @@ s_mean.cullLminLmax([0,0,0,0],lmax)
 s_data.cullLminLmax([0,0,0,0],lmax)
 
 # Theory prediction
-cosmo = ccl.Cosmology(n_s=0.9649, sigma8=0.8111, h=0.6736, Omega_c=0.264, Omega_b=0.0493)
+#cosmo = ccl.Cosmology(n_s=0.9649, sigma8=0.8111, h=0.6736, Omega_c=0.264, Omega_b=0.0493)
+cosmo = ccl.Cosmology(n_s=0.9649, sigma8=0.8111, h=0.6736, Omega_c=0.264, Omega_b=0.0493,mass_function = 'tinker')
+
+
 HMCorr = HaloModCorrection(cosmo, k_range=[1e-4, 1e2], nlk=256, z_range=[0., 3.], nz=50)
 cl_theory_true = get_theory(hod_params, cosmo_params, s_mean, halo_mod_corrector=HMCorr)
 cl_theory_naive = get_theory(hod_params, cosmo_params, s_data, halo_mod_corrector=HMCorr)
@@ -106,16 +109,12 @@ print ("Chi2 wrt to naive + Taylor = ",np.dot(di,np.dot(prec,di)))
 # assume this is a good proxy for the prior for now
 covmat_noise = np.diag(2.*dNz**2)
 
-# for estimating cosmic variance
-z_ini_sample = 0.
-z_end_sample = 2.
-z_bin_ini = s_mean.tracers[0].z[0]
-z_bin_end = s_mean.tracers[0].z[-1]
-# cosmic variance covmat for each tracer
-covmat_cv_per_tracer = compute_covmat_cv(z_bin_ini,z_bin_end,z_ini_sample,z_end_sample,Nztr)
-# stack those together for all of the tracers to get total cv covmat
+# Estimating cosmic variance
+# total cv covmat
 covmat_cv = np.zeros((Nz,Nz))
 for i in range(Ntr):
+    # cosmic variance covmat for each tracer
+    covmat_cv_per_tracer = compute_covmat_cv(cosmo,s_mean.tracers[i].z,s_mean.tracers[i].Nz)
     covmat_cv[i*Nztr:(i+1)*Nztr,i*Nztr:(i+1)*Nztr] = covmat_cv_per_tracer
 
 # obtain prior
