@@ -7,6 +7,7 @@ import copy
 from modules.theory_cls import get_theory
 from modules.halo_mod_corr import HaloModCorrection
 import matplotlib.pyplot as plt
+from compute_CV_cov import compute_covmat_cv
 
 plot_Nz=False
 lmax=[2000,2000,2600,3200]
@@ -70,7 +71,6 @@ Nztr=len(s_mean.tracers[0].z) # zbins per tracer
 Nz=Ntr*Nztr ## total Nz points
 Nd=len(s_data.mean.vector) ## total data points
 
-
 if os.path.isfile("Tmat.npy"):
     print ("Loading cached Tmat")
     Tmat=np.load("Tmat.npy")
@@ -104,7 +104,22 @@ print ("Chi2 wrt to naive + Taylor = ",np.dot(di,np.dot(prec,di)))
 # Implementation of the new precision matrix from Eq. 7 in the HSC Nz marg overleaf
 # NB: the T matrix here is the transpose of what is written in the equations there
 # assume this is a good proxy for the prior for now
-prior = np.diag(1./(dNz**2))
+covmat_noise = np.diag(2.*dNz**2)
+
+# for estimating cosmic variance
+z_ini_sample = 0.
+z_end_sample = 2.
+z_bin_ini = s_mean.tracers[0].z[0]
+z_bin_end = s_mean.tracers[0].z[-1]
+# cosmic variance covmat for each tracer
+covmat_cv_per_tracer = compute_covmat_cv(z_bin_ini,z_bin_end,z_ini_sample,z_end_sample,Nztr)
+# stack those together for all of the tracers to get total cv covmat
+covmat_cv = np.zeros((Nz,Nz))
+for i in range(Ntr):
+    covmat_cv[i*Nztr:(i+1)*Nztr,i*Nztr:(i+1)*Nztr] = covmat_cv_per_tracer
+
+# obtain prior
+prior = np.linalg.inv(covmat_cv+covmat_noise)
 # The expressions inside the bracket, before the bracket and after the bracket
 bracket = np.linalg.inv((np.dot(np.dot(Tmat,prec),Tmat.T)+prior))
 prebracket = np.dot(prec,Tmat.T)

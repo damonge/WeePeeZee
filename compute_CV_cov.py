@@ -7,22 +7,20 @@ from scipy.integrate import simps
 
 def get_nz_from_photoz_bins(weights_fn,zp_code,zp_ini,zp_end,zt_edges,zt_nbins):
     cat = fits.open(weights_fn)[1].data
-    # Select galaxies in photo-z bin                                                                     
+    # Select galaxies in photo-z bin
     sel = (cat[zp_code] <= zp_end) & (cat[zp_code]>zp_ini)
-
-    # Effective number of galaxies                                                                       
+    # Effective number of galaxies
     ngal = len(cat) * np.sum(cat['weight'][sel])/np.sum(cat['weight'])
-
-    # Make a normalized histogram                                                                        
-    pz,z_bins = np.histogram(cat['PHOTOZ'][sel],          # 30-band photo-zs                               
-                           bins = zt_nbins,               # Number of bins                                 
-                           range = zt_edges,              # Range in z_true                                
-                           weights = cat['weight'][sel],  # Color-space weights                            
-                           density = True)
+    # Make a normalized histogram
+    pz,z_bins = np.histogram(cat['PHOTOZ'][sel], # 30-band photo-zs
+                             bins = zt_nbins, # Number of bins
+                             range = zt_edges, # Range in z_true
+                             weights = cat['weight'][sel],# Color-space weights
+                             density = True)
     nz = ngal*pz
 
     zs = cat['PHOTOZ'][sel]
-    we = cat['weight'][sel]                   
+    we = cat['weight'][sel]
     mean = np.sum(zs*we)/np.sum(we)
     sigma = np.sqrt(np.sum(zs**2*we)/np.sum(we)-mean**2)
     return nz, z_bins, ngal, mean, sigma
@@ -58,7 +56,7 @@ def compute_covmat_cv(z_bin_ini,z_bin_end,z_ini_sample,z_end_sample,N_zsamples_t
     # Number of galaxies in each bin
     dn_noisy = dndz*dz
     # Smooth fit to it # ASK B.H.
-    dn = np.amax(dn_noisy)/(1+(np.abs(zm-z_mean)/(0.5*z_sigma))**2.7)
+    dn = np.amax(dn_noisy)/(1+(np.abs(zm-z_mean)/(0.25*z_sigma))**2.7)
     # Comoving distance to bin edges
     chis = ccl.comoving_radial_distance(cosmo,1./(1+zb))
     # Mean comoving distance in each bin
@@ -132,12 +130,13 @@ def plot_corrmat(covmat,N_zsamples_theo):
     plt.savefig("covmat.png")
     plt.close()
 
-# Radial bins
-N_zsamples_theo = 50
-z_ini_sample = 0.
-z_end_sample = 2.
-z_bin_ini = .5
-z_bin_end = .75
+def main():
+    # Radial bins
+    N_zsamples_theo = 50
+    z_ini_sample = 0.
+    z_end_sample = 2.
+    z_bin_ini = .5
+    z_bin_end = .75
 
-covmat_cv = compute_covmat_cv(z_bin_ini,z_bin_end,z_ini_sample,z_end_sample,N_zsamples_theo)
-plot_corrmat(covmat_cv,N_zsamples_theo)
+    covmat_cv = compute_covmat_cv(z_bin_ini,z_bin_end,z_ini_sample,z_end_sample,N_zsamples_theo)
+    plot_corrmat(covmat_cv,N_zsamples_theo)
