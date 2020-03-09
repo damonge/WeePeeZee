@@ -8,9 +8,23 @@ from modules.theory_cls import get_theory
 from modules.halo_mod_corr import HaloModCorrection
 import matplotlib.pyplot as plt
 from compute_CV_cov import compute_covmat_cv
+from smoothness import obtain_smoothing_D
 
 plot_Nz=False
 lmax=[2000,2000,2600,3200]
+
+def obtain_improved_prec(prec,Tmat,prior):
+    # The expressions inside the bracket, before the bracket and after the bracket
+    bracket = np.linalg.inv((np.dot(np.dot(Tmat,prec),Tmat.T)+prior))
+    prebracket = np.dot(prec,Tmat.T)
+    postbracket = np.dot(Tmat,prec)
+    # Assembling everything into one
+    prec_n = prec - np.dot(np.dot(prebracket,bracket),postbracket)
+    return prec_n
+
+# Check if positive definite
+def is_pos_def(x):
+    return np.all(np.linalg.eigvals(x) > 0)
 
 
 sim_name = sys.argv[1]
@@ -39,9 +53,7 @@ s_mean.cullLminLmax([0,0,0,0],lmax)
 s_data.cullLminLmax([0,0,0,0],lmax)
 
 # Theory prediction
-#cosmo = ccl.Cosmology(n_s=0.9649, sigma8=0.8111, h=0.6736, Omega_c=0.264, Omega_b=0.0493)
-cosmo = ccl.Cosmology(n_s=0.9649, sigma8=0.8111, h=0.6736, Omega_c=0.264, Omega_b=0.0493,mass_function = 'tinker')
-
+cosmo = ccl.Cosmology(n_s=0.9649, sigma8=0.8111, h=0.6736, Omega_c=0.264, Omega_b=0.0493)
 
 HMCorr = HaloModCorrection(cosmo, k_range=[1e-4, 1e2], nlk=256, z_range=[0., 3.], nz=50)
 cl_theory_true = get_theory(hod_params, cosmo_params, s_mean, halo_mod_corrector=HMCorr)
@@ -104,7 +116,7 @@ cl_theory_taylor=cl_theory_naive+np.dot(Tmat.T,dNz)
 di = s_data.mean.vector - cl_theory_taylor
 print ("Chi2 wrt to naive + Taylor = ",np.dot(di,np.dot(prec,di)))
 
-# Implementation of the new precision matrix from Eq. 7 in the HSC Nz marg overleaf
+# Implementation of the CV+noise precision matrix from Eq. 7 in the HSC Nz marg overleaf
 # NB: the T matrix here is the transpose of what is written in the equations there
 # assume this is a good proxy for the prior for now
 covmat_noise = np.diag(2.*dNz**2)
@@ -117,32 +129,47 @@ for i in range(Ntr):
     covmat_cv_per_tracer = compute_covmat_cv(cosmo,s_mean.tracers[i].z,s_mean.tracers[i].Nz)
     covmat_cv[i*Nztr:(i+1)*Nztr,i*Nztr:(i+1)*Nztr] = covmat_cv_per_tracer
 
+
+# impose smoothness
+# B.H. Getting the Delta zbin # TODO: ASK
+#Delta_z = np.mean(np.diff(s_mean.tracers[0]))
+Delta_z = 2./Ntr
+smooth_prior = obtain_smoothing_D(Ntr,Nztr,Delta_z,first=True,second=True,sum=False)
+
 # obtain prior
 prior = np.linalg.inv(covmat_cv+covmat_noise)
-# The expressions inside the bracket, before the bracket and after the bracket
-bracket = np.linalg.inv((np.dot(np.dot(Tmat,prec),Tmat.T)+prior))
-prebracket = np.dot(prec,Tmat.T)
-postbracket = np.dot(Tmat,prec)
-# Assembling everything into one
-prec_new = prec - np.dot(np.dot(prebracket,bracket),postbracket)
-# Report the new chi2
-print ("Chi2 wrt to naive + Taylor + new precision = ",np.dot(di,np.dot(prec_new,di)))
+# obtain smooth prior
+prior_smo = np.linalg.inv(covmat_cv+covmat_noise)+smooth_prior
 
-# Check if positive definite
-def is_pos_def(x):
-    return np.all(np.linalg.eigvals(x) > 0)
+# obtain CV+noise precision
+prec_CVnoi = obtain_improved_prec(prec,Tmat,prior)
+# obtain CV+noise+smooth precision
+prec_CVnoismo = obtain_improved_prec(prec,Tmat,prior_smo)
 
+# Check if precision is positive definite
 print("Prec is pos def? ",is_pos_def(prec))
-print("New prec pos def? ",is_pos_def(prec_new))
+print("CV+noise prec pos def? ",is_pos_def(prec_CVnoi))
+print("CV+noise+smooth prec pos def? ",is_pos_def(prec_CVnoismo))
 
-# Determinant ratio
-#prec = np.linalg.inv(prec)
-#prec_new = np.linalg.inv(prec_new)
+# Report the old chi2
+print ("Chi2 wrt to naive + Taylor + old precision = ",np.dot(di,np.dot(prec,di)))
+# Report the CV+noise chi2
+print ("Chi2 wrt to naive + Taylor + CV+noise precision = ",np.dot(di,np.dot(prec_CVnoi,di)))
+# Report the CV+noise+smooth chi2
+print ("Chi2 wrt to naive + Taylor + CV+noise+smooth precision = ",np.dot(di,np.dot(prec_CVnoismo,di)))
 
+
+
+# log determinant ratio
 log_det_prec = np.linalg.slogdet(prec)[1]
-log_det_prec_new = np.linalg.slogdet(prec_new)[1]
-ratio_det = log_det_prec-log_det_prec_new
-ratio_det = np.exp(ratio_det)
-print("ratio of det of old prec to new prec = ", ratio_det)
+log_det_prec_CVnoi = np.linalg.slogdet(prec_CVnoi)[1]
+log_det_prec_CVnoismo = np.linalg.slogdet(prec_CVnoismo)[1]
+ratio_det_CVnoi = log_det_prec-log_det_prec_CVnoi
+ratio_det_CVnoi = np.exp(ratio_det_CVnoi)
+ratio_det_CVnoismo = log_det_prec-log_det_prec_CVnoismo
+ratio_det_CVnoismo = np.exp(ratio_det_CVnoismo)
+print("ratio of det of old prec to CV+noise prec = ", ratio_det)
+print("ratio of det of old prec to CV+noise prec per dof = ", ratio_det_CVnoi**(1./len(di_true)))
+print("ratio of det of old prec to CV+noise+smooth prec per dof = ", ratio_det_CVnoismo**(1./len(di_true)))
 
 # TODO: insert the smoothness; account for the COSMOS bias; run HSC chains anew

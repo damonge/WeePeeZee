@@ -67,9 +67,9 @@ def compute_covmat_cv(cosmo,zm,dndz):
     kp_arr = np.geomspace(0.00005,10.,n_kp)
     # Total wavenumber
     k_arr = np.sqrt(kt_arr[None,:]**2+kp_arr[:,None]**2)
-
+    # B.H. changed a to float(a)
     pk_arr = np.array([(b+f*kp_arr[:,None]**2/k_arr**2)**2*
-                     ccl.nonlin_matter_power(cosmo,k_arr.flatten(),a).reshape([n_kp,n_kt])\
+                     ccl.nonlin_matter_power(cosmo,k_arr.flatten(),float(a)).reshape([n_kp,n_kt])\
                      for a,b,f in zip(1./(1+zm),b_m,f_m)])
 
 
@@ -78,13 +78,12 @@ def compute_covmat_cv(cosmo,zm,dndz):
 
     # Estimating covariance matrix
     # avoiding getting 0s in covariance
-    eps  =  0.001
+    eps  =  0.0
+    # Changed from dn to dndz B.H. and A.S. TODO: Check
     print("covmat_cv...")
     covmat_cv  =  np.array([[(ni+eps)*(nj+eps)*covar(i,j,window,pk_arr,chi_m,kp_arr,kt_arr) \
-                             for i,ni in enumerate(dn)] \
-                            for j,nj in enumerate(dn)])
-
-    print(covmat_cv.shape)
+                             for i,ni in enumerate(dndz)] \
+                            for j,nj in enumerate(dndz)])
     return covmat_cv
 
 def covar(i,j,window,pk_arr,chi_m,kp_arr,kt_arr):
@@ -119,5 +118,6 @@ def main():
     z_bin_ini = .5
     z_bin_end = .75
 
+    # This version is the old one TODO: update
     covmat_cv = compute_covmat_cv(z_bin_ini,z_bin_end,z_ini_sample,z_end_sample,N_zsamples_theo)
     plot_corrmat(covmat_cv,N_zsamples_theo)
