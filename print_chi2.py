@@ -168,7 +168,7 @@ ratio_det_CVnoi = log_det_prec-log_det_prec_CVnoi
 ratio_det_CVnoi = np.exp(ratio_det_CVnoi)
 ratio_det_CVnoismo = log_det_prec-log_det_prec_CVnoismo
 ratio_det_CVnoismo = np.exp(ratio_det_CVnoismo)
-print("ratio of det of old prec to CV+noise prec = ", ratio_det)
+print("ratio of det of old prec to CV+noise prec = ", ratio_det_CVnoi)
 print("ratio of det of old prec to CV+noise prec per dof = ", ratio_det_CVnoi**(1./len(di_true)))
 print("ratio of det of old prec to CV+noise+smooth prec per dof = ", ratio_det_CVnoismo**(1./len(di_true)))
 
