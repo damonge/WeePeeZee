@@ -131,10 +131,8 @@ for i in range(Ntr):
 
 
 # impose smoothness
-# B.H. Getting the Delta zbin # TODO: ASK
-#Delta_z = np.mean(np.diff(s_mean.tracers[0]))
-Delta_z = 2./Ntr
-smooth_prior = obtain_smoothing_D(Ntr,Nztr,Delta_z,first=True,second=True,sum=False)
+A_smooth=0.5
+smooth_prior = A_smooth**2*obtain_smoothing_D(s_mean,first=True,second=True)
 
 # obtain prior
 prior = np.linalg.inv(covmat_cv+covmat_noise)
