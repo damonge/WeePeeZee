@@ -10,7 +10,7 @@ from modules.theory_cls import get_theory
 from calculate_smooth_s_and_prior import get_smooth_s_and_prior
 
 # Note to self and reader -> this should eventually be run with the real data, i.e.
-# read = 'COADD' # TODO make sure COADD is correct;
+# read = 'COADDED'
 # TODO we are assuming cosmic variance of the tomographic bins is uncorrelated
 # For now I am using read = 'COADD' and write = 'test_2' 
 
@@ -46,15 +46,23 @@ hod_params = {'zfid':0.65,
 
 
 # Implementation of the CV+noise precision matrix from Eq. 7 in the HSC Nz marg overleaf
-# NB: the T matrix here is the transpose of what is written in the equations there
+# NB: the T matrix here is the transpose of what is written in the equations on overleaf
+# !!!Important!!! Function currently not called since we use the simplified obtain_improved_cov
 def obtain_improved_prec(prec,Tmat,prior):
     # The expressions inside the bracket, before the bracket and after the bracket
     bracket = np.linalg.inv((np.dot(np.dot(Tmat,prec),Tmat.T)+prior))
     prebracket = np.dot(prec,Tmat.T)
     postbracket = np.dot(Tmat,prec)
     # Assembling everything into one
-    prec_n = prec - np.dot(np.dot(prebracket,bracket),postbracket)
-    return prec_n
+    prec_m = prec - np.dot(np.dot(prebracket,bracket),postbracket)
+    return prec_m
+
+# This is the improved covariance with David's simplification (Woodbury matrix identity)
+# NB: the T matrix here is the transpose of what is written in the equations on overleaf
+def obtain_improved_cov(cov,Tmat,prior):
+    # The expressions inside the bracket, before the bracket and after the bracket
+    cov_m = cov + np.dot(np.dot(Tmat.T,np.linalg.inv(prior)),Tmat)
+    return cov_m
 
 # The T matrix is simply a matrix containing the first der of Cl with resp to Nz
 def obtain_Tmat(s_data,Nz,Nztr,hod_pars,cosmo_pars,HMCorr,delta=1.e-3):
@@ -133,9 +141,10 @@ Nz_total = N_tracers*Nz_per_tracer
 
 # Applying l-cuts; remove for MCMC run
 s_d.cullLminLmax([0,0,0,0],lmax)
-# Get the precision matrix 
+# Get the covariance and precision matrices
 N_data = len(s_d.mean.vector)
-prec = s_d.precision.getPrecisionMatrix()
+cov = s_d.precision.getCovarianceMatrix()
+prec = np.linalg.inv(cov)
 
 # Tmat computation
 if os.path.isfile("Tmat_"+read+".npy"):
@@ -145,14 +154,17 @@ else:
     Tmat = obtain_Tmat(s_d,Nz_total,Nz_per_tracer,hod_params,cosmo_params,HMCorrection)
     np.save("Tmat_"+read+".npy",Tmat)
 
-# Obtain the new precision matrix
-prec_CVnoismo = obtain_improved_prec(prec,Tmat,prior_smo)
+# Obtain the new precision matrix !!!!!!!!!!!! NOT USED ANYMORE !!!!!!!!!!
+#prec_CVnoismo = obtain_improved_prec(prec,Tmat,prior_smo)
+
+# Obtain the new covariance matrix
+cov_CVnoismo = obtain_improved_cov(cov,Tmat,prior_smo)
 
 # Weirdly it seems like this object actually expects the covariance rather than the precision 
-prec_n = sacc.Precision(np.linalg.inv(prec_CVnoismo))
+cov_n = sacc.Precision(cov_CVnoismo)
 
-# Create new sacc file
-s_n = sacc.SACC(s_d.tracers,s_d.binning,s_d.mean.vector,prec_n,meta=s_d.meta)
+# Create new sacc file (TODO: ask about "dense")
+s_n = sacc.SACC(s_d.tracers,s_d.binning,s_d.mean.vector,cov_n,meta=s_d.meta)
 
 # Save the new covariance and the power spectrum of the data which shall be run via MCMC
 if not os.path.exists(dir_write):
@@ -161,7 +173,6 @@ s_n.saveToHDF(dir_write+"/power_spectra_wdpj.sacc")
 
 # Copying noise bias file
 shutil.copy(dir_read +"/noi_bias.sacc",dir_write)
-
 
 # !!!!! Everything below is just for checking that the code works !!!!!!
 
@@ -173,9 +184,9 @@ prec_CVnoismo = s_n.precision.getPrecisionMatrix()
 dof = N_data
 
 # Function to calculate chi2
-def print_chi2(di,prec):
+def print_chi2(di,precision):
     # Report the chi2
-    return np.dot(di,np.dot(prec,di))
+    return np.dot(di,np.dot(precision,di))
 
 # Difference of N(z) between smooth and jagged
 dNz = NzVec(s_m)-NzVec(s_d)
