@@ -10,7 +10,8 @@ from modules.theory_cls import get_theory
 from calculate_smooth_s_and_prior import get_smooth_s_and_prior
 
 # Note to self and reader -> this should eventually be run with the real data, i.e.
-# read = 'COADDED'
+# read = 'COADDED'; write = 'MARG'
+# Important REMOVE l-cuts for the real run
 # TODO we are assuming cosmic variance of the tomographic bins is uncorrelated
 # For now I am using read = 'COADD' and write = 'test_2' 
 
@@ -140,7 +141,8 @@ N_tracers = len(s_d.tracers)
 Nz_total = N_tracers*Nz_per_tracer
 
 # Applying l-cuts; remove for MCMC run
-s_d.cullLminLmax([0,0,0,0],lmax)
+#s_d.cullLminLmax([0,0,0,0],lmax)
+
 # Get the covariance and precision matrices
 N_data = len(s_d.mean.vector)
 cov = s_d.precision.getCovarianceMatrix()
