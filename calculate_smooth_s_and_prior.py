@@ -103,8 +103,8 @@ def main():
     # Theory prediction
     cosmo = ccl.Cosmology(**cosmo_params)
 
-    s_d = sacc.SACC.loadFromHDF("data/COADD/power_spectra_wdpj.sacc")
-    s_sm, prior_sm = get_smooth_s_and_prior(s_d,cosmo,want_prior=True)
+    s_d = sacc.SACC.loadFromHDF("data/COADDED/power_spectra_wdpj.sacc")
+    s_sm, prior_sm = get_smooth_s_and_prior(s_d,cosmo,want_prior=True,A_smooth=0.25,noi_fac=4.)
 
     Nz_per_tracer = len(s_d.tracers[0].z)
     N_tracers = len(s_d.tracers)
@@ -124,4 +124,3 @@ def main():
         plt.legend()
         plt.savefig("Nz_"+str(i)+".png")
         plt.close()
-

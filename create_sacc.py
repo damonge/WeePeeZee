@@ -13,7 +13,7 @@ from calculate_smooth_s_and_prior import get_smooth_s_and_prior
 # read = 'COADDED'; write = 'MARG'
 # Important REMOVE l-cuts for the real run
 # TODO we are assuming cosmic variance of the tomographic bins is uncorrelated
-# For now I am using read = 'COADD' and write = 'test_2' 
+# For testing I am using read = 'COADD' and write = 'test_2' 
 
 try:
     # Names of the data read and write directories 
@@ -27,6 +27,10 @@ dir_write = "data/"+write
 # l-cuts
 # Remove this for the actual MCMC run as the sampler makes its own cut TODO
 lmax = [2000,2000,2600,3200]
+
+# choice for noise and smoothing
+A_smooth = 0.25
+noi_fac = 4.
 
 # Cosmological parameters
 # Checked cosmo_params are the same as what the MCMC chain fixes for them
@@ -45,7 +49,36 @@ hod_params = {'zfid':0.65,
               'alpha_0':1, 'alpha_1':0,
               'fc_0':1., 'fc_1':0.}
 
+hod_sigmas = {'lmmin':0.22, 'lmminp':2.0,
+              'm0':4.0, 'm0p':5.0,
+              'm1':0.27, 'm1p':2.6}
 
+# Here are some choice that we make for the tests we are running
+# TEST #1
+if write == "MARG_1sigma":
+    print("Getting marginalized covariance for the 1-sigma test")
+    coin = 1
+    for key in hod_sigmas.keys():
+        hod_params[key] += coin*hod_sigmas[key]
+        coin *= -1
+        print(key,hod_params[key])
+
+# TEST #2
+if write == "MARG_nosmooth":
+    print("Getting marginalized covariance for the no-smoothing test")
+    A_smooth = 0.
+
+# TEST #3
+if write == "MARG_largenoise":
+    print("Getting marginalized covariance for the large-noise test")
+    noi_fac = 42.
+
+# TEST #4
+if write == "MARG_nosmooth_largenoise":
+    print("Getting marginalized covariance for the no-smoothing+large-noise test")
+    A_smooth = 0.
+    noi_fac = 42.
+    
 # Implementation of the CV+noise precision matrix from Eq. 7 in the HSC Nz marg overleaf
 # NB: the T matrix here is the transpose of what is written in the equations on overleaf
 # !!!Important!!! Function currently not called since we use the simplified obtain_improved_cov
@@ -108,7 +141,7 @@ def obtain_prior_smo(s_data,s_mean,Nz,Ntr,Nztr,cosmology):
         covmat_cv[i*Nztr:(i+1)*Nztr,i*Nztr:(i+1)*Nztr] = covmat_cv_per_tracer
         
     # impose smoothness
-    A_smooth = 0.5
+    A_smooth = A_smooth
     smooth_prior = A_smooth**2*obtain_smoothing_D(s_mean,first=True,second=True)
 
     # obtain prior with CV and noise
@@ -129,7 +162,7 @@ HMCorrection = HaloModCorrection(cosmo, k_range=[1e-4, 1e2], nlk=256, z_range=[0
 s_d = sacc.SACC.loadFromHDF(dir_read+"/power_spectra_wdpj.sacc")
 
 # Calculate the smooth s_m = (P0+D)^-1 P0 s0 and smooth prior prior_smo = P0+D
-s_m, prior_smo = get_smooth_s_and_prior(s_d,cosmo,want_prior=True,A_smooth=0.25,noi_fac=4.)
+s_m, prior_smo = get_smooth_s_and_prior(s_d,cosmo,want_prior=True,A_smooth=A_smooth,noi_fac=noi_fac)
 
 # Old version of the code:
 #prior_smo = obtain_prior_smo(s_d,s_m,Nz_total,N_tracers,Nz_per_tracer,cosmo)
