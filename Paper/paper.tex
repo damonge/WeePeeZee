@@ -1,0 +1,177 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage{ifpdf} 
+\ifpdf
+\pdfoutput=1 % if your are submitting a pdflatex (i.e. if you have
+             % images in pdf, png or jpg format)
+\fi
+
+\usepackage{jcappub}
+\usepackage{graphicx}
+\usepackage{dcolumn}
+\usepackage{amssymb,amsmath,bm}
+\usepackage{color}
+\usepackage[dvipsnames]{xcolor}
+%\usepackage[colorlinks,linkcolor=red,citecolor=blue,urlcolor=blue ]{hyperref}
+%\usepackage[utf8]{inputenc}
+\usepackage{xfrac}
+\usepackage{aas_macros}
+\usepackage{mathrsfs}
+\usepackage{subcaption}
+\usepackage{rotating}
+\usepackage{chngcntr}
+\newcommand{\nv}{\vec{\theta}}
+%\newcommand{\pasj}{Publications of the ASJ}
+%\newcommand{\aap}{Astronomy and Astrophysics}
+%\newcommand{\apj}{Astrophysical Journal}
+%\newcommand{\apjs}{Astrophysical Journal, Supplement}
+%\newcommand{\mnras}{Monthly Notices of the RAS}
+\newcommand{\todo}[1]{{\bf TODO: #1}}
+
+\newcommand{\as}[1]{{\textcolor{blue}{[AS: #1]}}}
+\newcommand{\an}[1]{{\textcolor{magenta}{[AN: #1]}}}
+\newcommand{\da}[1]{{\textcolor{red}{[DA: #1]}}}
+
+\newcommand{\vd}{\mathbf{d}}
+\newcommand{\vt}{\mathbf{t}}
+\newcommand{\vN}{\mathbf{N}}
+
+\newcommand\Tstrut{\rule{0pt}{3ex}}   
+
+%\usepackage{lineno}
+%\linenumbers
+
+\definecolor{internationalkleinblue}{rgb}{0.0, 0.18, 0.65}
+\hypersetup{urlcolor=internationalkleinblue, linkcolor=internationalkleinblue, citecolor=internationalkleinblue}
+
+\usepackage[T1]{fontenc} % if needed
+\usepackage{natbib}
+\bibliographystyle{JHEP}
+\title{Marginalization of photometric redshift uncertainties}
+
+\author[a,1]{Boryana Hadzhiyska,}
+\author[b]{David Alonso,}
+\author[c]{Andrina Nicola,}
+\author[d]{An\v{z}e Slosar,}
+
+\affiliation[a]{Harvard-Smithsonian Center for Astrophysics, 60 Garden St., Cambridge, MA 02138, USA}
+\affiliation[b]{Department of Physics, University of Oxford, Denys Wilkinson Building, Keble Road, Oxford OX1 3RH, United Kingdom}
+\affiliation[c]{Department of Astrophysical Sciences, Princeton University, Peyton Hall, Princeton NJ 08544-0010, USA}
+\affiliation[d]{Brookhaven National Laboratory, Physics Department, Upton, NY 11973, USA}
+\emailAdd{boryana.hadzhiyska@cfa.harvard.edu}
+
+\abstract{We present a new method for marginalization over uncertainties in redshift distributions of tomographic bins applicable to current and coming photometric galaxy surveys. We allow for arbitrary deviations from the best guess $N(z)$ governed by a general covariance matrix describing incompleteness in our knowledge of redshift distributions. In principle, this is marginalization over potentially hundreds of new parameters describing potential deviations as a function of redshift and tomographic bin. However, by Taylor expanding theory predictions around a fiducial model, we can perform the marginalization analytically, resulting in a modified data covariance matrix. We demonstrate  this method by applying to the galaxy clustering measurements from the Year One of Hyper SupremeCam data demonstrate how we can marginalize over sample-variance of the PZ calibration sample and a large general systematic uncertainty in photometric determination methods. We find that this method gives results that are comparable to the ad-hoc shift and width parameterizations and show that the only deviations that matter are smooth deviations. 
+}
+
+
+\begin{document}
+\maketitle
+\flushbottom
+
+\section{Introduction}\label{sec:intro}
+
+Yadi, yadi, yadi. Upcoming photometric galaxy suryves, yadi yadi,
+importance of 3x2point, yadi, yadi. Define $N(z)$. 
+
+
+\section{Theory}
+
+In typical cosmological analysis problem, we are performing a Bayesian inference on the posterior $p({\rm theory} | {\rm data} ) \propto p({\rm data}|{\rm} theory) p({\rm theory})$ with the data likelihood given by 
+\begin{equation}
+p({\rm data}|{\rm theory}) =  \mathcal{L} \propto  \exp\left [-\frac{1}{2} \chi^2 \right], \label{eq:like}
+\end{equation}
+where
+\begin{equation}
+  \chi^2  = (\vd-\vt)^T C^{-1} (\vd-\vt),
+\end{equation}
+where $\vd$ is the data vectory, typically containing all the summary statistic of interest like correlation functions ot power spectra and $\vt$ the theory vector through which parameter dependence enters. In this set-up the covariance matrix $C$ is fixed (and hence the Gaussian normalization term does not enter equation \ref{eq:like}), which is usually a very good approximation in typical problems that we wish to consider \cite{1811.11584}, but note that the method is easily generalizable to the cases where this is not true.
+
+We can make significant progress without specifying explicitly how theory is calculate given the parameters. It suffices to say that given a set of cosmological parameters, which specify the evolution of the universe and thus matter power spectra as a function of scale and redshift, a set of survey properties, such as number densities and redshift distribution of galaxies and weak lensing sources, we can integrate these into theory predictions $\vt=\vt(\theta)$.
+
+The traditional approach is to add to add nuissance parameters that describe our lack of knowledge of galaxy redshift distribution. A typical approach is to use shift and width parameters  \cite{1706.09359,1912.08209} \as{did DES Y1 have shift/width?},
+where redshift distributions $N_i(z)$ are shifted according to
+    \begin{equation}
+      N_{i}(z) \propto \bar{N}_{i}\left(z_{c,i} + (1 + z_{w, i})(z-z_{c, i}) + \Delta z_{i}\right),
+      \label{eq:photo-z-model}
+    \end{equation} 
+where the index $i$ runs over the number of tomographic samples. Here $N_{i}(z)$ is the true redshift distribution with  $\bar{N}_{i}(z)$ out best estimate of it. The parameters $\Delta z_{i}$ and $z_{w,i}$ account for shifts in the means of the distributions, while $z_{c,i} = \left<z\right>_{\bar{N}_i}$ is the mean redshift to act as a sensible pivot for width changes. The shift and width parameters for each tomographic bin are then inferred and marginalized over together with all other parameters.
+    
+This approach explicitly marginalizes over the two effects that we think are the two most important systematics stemming from redshift distribution uncertainty. However, it suffers from two problems. First, it is fundamentally ad-hoc. This particular parametric form does not stem from consideration of phometric redshift estimators. There is also no reason to believe why it would be complete in the sense that it captures all relevant effects. The second problem is that it is computationally expensive. For example, in the analysis 
+    of \cite{1912.08209}, redshift uncertainty parameters accounted for 8 (2 per 4 tomographic bins) of 14 total parameters in the inference process, i.e. over the half parameters inferred were dealing with redshift.
+
+\subsection{A new approach}
+    
+In this paper we advocate a different approach. First, let's consider a binned description of $N_i(z)$ in terms of $N_{ij}$, where $i$ index describes the tomographic bin and $j$ is redshift index, so that $N_{ij} = N_i(z_j)$ at some discrete grid of $z_j$. This entire vector can be packed in a vector $\vN$.
+
+We will describe our uncertainty in $\vN$ as a Gaussian
+\begin{equation}
+  p(\vN) \propto \exp\left[  (\vN - \bar{\vN})^T P^{-1} (\vN -\bar{\vN}) \right],
+\end{equation}
+where $\hat{\vN}$ is our best guess of redshift distribution $P$ is a matrix of allowed deviations. We will discuss later how $P$ can be determined, but at this point we note that it is a general positive-definite matrix, i.e not necessarily diagonal). Other possible parameterizations are sub-summed in this approach. For example, a general shift-width is allowed with the probability $p(\vN(\Delta z_i, z_{w,i}))$.
+
+We can now write a likelihood for the data in which we explicitly marginalize out all the degrees of freedom associated with $\vN$:
+\begin{equation}
+\mathcal{L} \propto  \int \exp\left [-\frac{1}{2} (\vd-\vt)^T C^{-1} (\vd-\vt) -\frac{1}{2} (\vN - \bar{\vN})^T P^{-1} (\vN -\bar{\vN}) \right]  d^N\vN, \label{eq:like2}
+  \end{equation}
+  Note that in the equation above, $\vt=\vt(\theta,\vN)$, where $\theta$ are the remaining parameters. It is this dependence that prevents us from performing what looks like a trivial integral.
+
+  In principle, we could solve this problem by making every single element of vector $\vN$ a part of MCMC chain and simply run the MCMC with $\theta$ and additional hundreds of $\vN$ parameters. Instead, we pull an Eastern-European trick and Taylor expand theory around $\hat{\vN}$:
+  \begin{equation}
+    \vt(\theta,\vN) = \vt(\theta,\bar{\vN}) + T \left(\vN - \bar{\vN} \right), \label{eq:taylor}
+  \end{equation}
+  where
+  \begin{equation}
+    T_{mn} = \frac{\partial t_m}{\partial N_n} \bigg|_{\theta,\hat{\vN}}
+  \end{equation}
+  The matrix $T$ is the non-square matrix giving derivatives of theory with respect to each element of $\vN$. In other words it contains a full information about how all the correlation functions or power spectra respond to changing $N(z)$ distribution for one tomographic bin at one redshift.
+
+  Substituting Eq. \ref{eq:taylor} into Eq. \ref{eq:like} results in an integral that is now quadratic in $\bar{\vN}$ and can be performed analytically. After some bothersome algebra, we find:
+  \begin{equation}
+    \mathcal{L} \propto \frac{1}{|T C^{-1} T^T +P |^{1/2}} \exp\left [-\frac{1}{2} (\vd-\vt)^T C_M^{-1} (\vd-\vt) \right], \label{eq:main1}
+  \end{equation}
+  where
+  \begin{equation}
+    C_M = C + T P^{-1}T^T \label{eq:main2}
+  \end{equation}
+  This is a fascinatingly simple equations and the main result of this paper. What is happening here is that for each deviation around $\hat{\vN}$, there is a corresponding deviation around $\vt$. These are directions in  space of theory predictions that are perfectly degenerate with the changes in shape of $N(z)$.  Equation \ref{eq:main2}  increases the variance for those deviations commensurate with how far P allows them to go.
+
+  In principle, at every point in likelihood, one should evaluate Eq. \ref{eq:main1}, which means recalculating $T$. Since this is a very expensive computation, we will further simplify the problem, by assuming $T$ is only weakly deviations from some fiducial cosmology. We will therefore pre-compute $T$ once for the fiducial cosmology, which then means that normalization term in equation \ref{eq:main1} is an irrelevant constant and at fixed data covariance matrix $C$, the Eq. \ref{eq:main2} also needs to be evaluated just once.
+
+  The procedure is thus as follows:
+  \begin{itemize}
+  \item Run inference problem once with fixed redshift distribution to determine a sensible fiducial model.
+    
+  \item Calculate $T$ and $C_M$ at this fiducial model
+    
+  \item Re-run inference with the modified covariance matrix $C_M$, which leads to broadened contours due to marginalization of redshift distributions
+    
+  \end{itemize}
+If needed, one could repeat the inference at a refined fiducial model although in pracice we found this to be unnecessary.
+
+Note that there are two distinct approximation here. The first is that theory can validly be Taylor expanded in $\vN-\bar{\vN}$ and the second is that $T$ is model independent for models of interest. We will examine validity of botho of those approximatons in Section \ref{sec:hsc}
+
+\subsection{Determination of prior matrix P}
+
+\subsubsection{Uncertainty due to estimator biases}
+
+\subsubsection{Cosmic Variance in calibrator sample}
+
+\subsubsection{Smoothness prior}
+
+
+  
+
+
+
+
+
+\section{Appplication to HSC clustering data}
+\label{sec:hsc}
+
+
+
+\section{Conclusions}
+
+
+\bibliography{bibliography}
+
+\end{document}
