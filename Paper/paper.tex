@@ -126,11 +126,11 @@ We can now write a likelihood for the data in which we explicitly marginalize ou
 
   Substituting Eq. \ref{eq:taylor} into Eq. \ref{eq:like} results in an integral that is now quadratic in $\bar{\vN}$ and can be performed analytically. After some bothersome algebra, we find:
   \begin{equation}
-    \mathcal{L} \propto \frac{1}{|T C^{-1} T^T +P |^{1/2}} \exp\left [-\frac{1}{2} (\vd-\vt)^T C_M^{-1} (\vd-\vt) \right], \label{eq:main1}
+    \mathcal{L} \propto \frac{1}{|T C^{-1} T^T +P^{-1} |^{1/2}} \exp\left [-\frac{1}{2} (\vd-\vt)^T C_M^{-1} (\vd-\vt) \right], \label{eq:main1}
   \end{equation}
   where
   \begin{equation}
-    C_M = C + T P^{-1}T^T \label{eq:main2}
+    C_M = C + T PT^T \label{eq:main2}
   \end{equation}
   This is a fascinatingly simple equations and the main result of this paper. What is happening here is that for each deviation around $\hat{\vN}$, there is a corresponding deviation around $\vt$. These are directions in  space of theory predictions that are perfectly degenerate with the changes in shape of $N(z)$.  Equation \ref{eq:main2}  increases the variance for those deviations commensurate with how far P allows them to go.
 
