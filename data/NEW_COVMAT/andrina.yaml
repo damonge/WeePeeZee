@@ -1,0 +1,72 @@
+# Comment out the probes you don't need
+# CAREFUL: yaml is super sensitive to spaces - don't use tabs
+saccfiles: ['/tigress/anicola/DATA/HSC-LSS/HSC_processed/data/WIDE_GAMA15H_sirius_i24p5_out/CovAna_NoiAna_MskSirius_ClFit_Dpj0_DpjBands1_newCov/power_spectra_wdpj.sacc', '/tigress/anicola/DATA/HSC-LSS/HSC_processed/data/WIDE_GAMA09H_sirius_i24p5_out/CovAna_NoiAna_MskSirius_ClFit_Dpj0_DpjBands1_newCov/power_spectra_wdpj.sacc', '/tigress/anicola/DATA/HSC-LSS/HSC_processed/data/WIDE_WIDE12H_sirius_i24p5_out/CovAna_NoiAna_MskSirius_ClFit_Dpj0_DpjBands1_newCov/power_spectra_wdpj.sacc', '/tigress/anicola/DATA/HSC-LSS/HSC_processed/data/WIDE_VVDS_sirius_i24p5_out/CovAna_NoiAna_MskSirius_ClFit_Dpj0_DpjBands1_newCov/power_spectra_wdpj.sacc', '/tigress/anicola/DATA/HSC-LSS/HSC_processed/data/WIDE_XMMLSS_sirius_i24p5_out/CovAna_NoiAna_MskSirius_ClFit_Dpj0_DpjBands1_newCov/power_spectra_wdpj.sacc']
+
+cl_params:
+    fitHOD: 1
+    modHOD: zevol
+    fitNoise: 0
+    corrHM: 1
+    fstar: 1.04
+    bg:
+        b_bin0: 1.
+        b_bin1: 1.
+        b_bin2: 1.
+        b_bin3: 1.
+
+sacc_params:
+    singleBin: 0
+    cullCross: 0
+    joinSaccs: 1
+    lmin: kmax
+    lmax: kmax
+    kmax: 1.
+    path2cov: ['/tigress/anicola/DATA/HSC-LSS/HSC_processed/analysis/i24p5_CovAna_NoiAna_MskSirius_ClFitHODEvol_Dpj0_DpjBands1_newCov/cov/covmat_HSC_dg_hoddg_hodxdg_hoddg_hod_trisp=4h3h2h_SSC=PT-resp_mode=LINBIAS_l=ells_eff_all_wcross_clfit=HOD-zevol_culled=True_coadd=area_G+NG+SSC.npy']
+
+# Parameters to be fitted in MCMC
+# [mapping_index, mean, min, max, std]
+fit_params:
+    zshift_bin0: [0, 0.0, -0.2, 0.2, 0.01]
+    zshift_bin1: [1, 0.0, -0.2, 0.2, 0.01]
+    zshift_bin2: [2, 0.0, -0.2, 0.2, 0.01]
+    zshift_bin3: [3, 0.0, -0.2, 0.2, 0.01]
+    lmminp: [4, 4., -10., 10., 0.5]
+    lmmin: [5, 10., 0., 15., 0.5]
+    m0p: [6, 4., -5., 10., 0.5]
+    m0: [7, 10., 0., 15., 0.5]
+    m1p: [8, 7., -12., 15., 0.5]
+    m1: [9, 10., 0., 17., 0.5]
+    zwidth_bin0: [10, 0.0, -0.2, 0.2, 0.01]
+    zwidth_bin1: [11, 0.0, -0.2, 0.2, 0.01]
+    zwidth_bin2: [12, 0.0, -0.2, 0.2, 0.01]
+    zwidth_bin3: [13, 0.0, -0.2, 0.2, 0.01]
+
+default_params:
+    has_rsd: False
+    has_magnification: null
+    Omega_b: 0.0493
+    Omega_k: 0.0
+    sigma8: 0.8111
+    h: 0.6736
+    n_s: 0.9649
+    Omega_c: 0.264
+    transfer_function: boltzmann_class
+    matter_power_spectrum: halofit
+    sigm_0: 0.4
+    sigm_1: 0.
+    alpha_0: 1.0
+    alpha_1: 0.
+    fc_0: 1.
+    fc_1: 0.
+    zfid: 0.65
+
+# Configuration parameters for cosmohammer
+ch_config_params:
+    path2output: /tigress/anicola/DATA/HSC-LSS/HSC_processed/analysis/i24p5_CovAna_NoiAna_MskSirius_ClFitHODEvol_Dpj0_DpjBands1_newCov/chains
+    path2rerunchain: /tigress/anicola/DATA/HSC-LSS/HSC_processed/analysis/i24p5_CovAna_NoiAna_MskSirius_ClFitHODEvol_Dpj0_DpjBands1_DepthMapStars/chains/mcm-chains_mPk=HOD_fix=alpha-fc-sigmaM_HOD=zevol_fit=pz-shifts+prior=0p2-pz-widths+prior=0p2_fit=auto+cross_cosmo=const_cov=G+NG+SSC-LINBIAS_HOD-param=zfid_clfit=HOD-zevol_DMS-1.out
+    chainsPrefix: mcm-chains_mPk=HOD_fix=alpha-fc-sigmaM_HOD=zevol_fit=pz-shifts-pz-widths+prior=0p2_fit=auto+cross_cosmo=const_cov=G+NG+SSC-LINBIAS_HOD-param=zfid_clfit=HOD-zevol_nC
+    use_mpi: 1
+    rerun: 0
+    walkersRatio: 8
+    burninIterations: 2000
+    sampleIterations: 20000

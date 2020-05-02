@@ -11,6 +11,8 @@ from calculate_smooth_s_and_prior import get_smooth_s_and_prior
 
 # Note to self and reader -> this should eventually be run with the real data, i.e.
 # read = 'COADDED'; write = 'MARG'
+# or for realistic NG covariance
+# read = 'NEWCOV_COADDED'; write = 'NEWCOV_MARG'
 # Important REMOVE l-cuts for the real run
 # TODO we are assuming cosmic variance of the tomographic bins is uncorrelated
 # For testing I am using read = 'COADD' and write = 'test_2' 
@@ -26,7 +28,8 @@ dir_write = "data/"+write
 
 # l-cuts
 # Remove this for the actual MCMC run as the sampler makes its own cut TODO
-lmax = [2000,2000,2600,3200]
+#lmax = [2000,2000,2600,3200]
+lmax = [2170.58958919, 2515.39193451, 3185.36076391, 4017.39370804]
 
 # choice for noise and smoothing
 A_smooth = 0.25
@@ -55,7 +58,8 @@ hod_sigmas = {'lmmin':0.22, 'lmminp':2.0,
 
 # Here are some choice that we make for the tests we are running
 # TEST #1
-if write == "MARG_1sigma":
+if "1sigma" in write:
+    # Delete the CV covmat and the Tmat
     print("Getting marginalized covariance for the 1-sigma test")
     coin = 1
     for key in hod_sigmas.keys():
@@ -64,20 +68,18 @@ if write == "MARG_1sigma":
         print(key,hod_params[key])
 
 # TEST #2
-if write == "MARG_nosmooth":
+if "nosmooth" in write:
+    # Delete the CV covmat
     print("Getting marginalized covariance for the no-smoothing test")
     A_smooth = 0.
 
 # TEST #3
-if write == "MARG_largenoise":
+if "largenoise" in write:
+    # Delete the CV covmat
     print("Getting marginalized covariance for the large-noise test")
     noi_fac = 42.
 
-# TEST #4
-if write == "MARG_nosmooth_largenoise":
-    print("Getting marginalized covariance for the no-smoothing+large-noise test")
-    A_smooth = 0.
-    noi_fac = 42.
+# TEST #4 there is this test too "MARG_nosmooth_largenoise":
     
 # Implementation of the CV+noise precision matrix from Eq. 7 in the HSC Nz marg overleaf
 # NB: the T matrix here is the transpose of what is written in the equations on overleaf
