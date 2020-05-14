@@ -5,9 +5,11 @@ import numpy as np
 import pyccl as ccl
 import copy
 import shutil
+import matplotlib.pyplot as plt
 from modules.halo_mod_corr import HaloModCorrection
 from modules.theory_cls import get_theory
 from calculate_smooth_s_and_prior import get_smooth_s_and_prior
+import scipy.linalg as la
 
 # Note to self and reader -> this should eventually be run with the real data, i.e.
 # read = 'COADDED'; write = 'MARG'
@@ -176,7 +178,6 @@ N_tracers = len(s_d.tracers)
 Nz_total = N_tracers*Nz_per_tracer
 
 # Applying l-cuts; remove for MCMC run
-#s_d.cullLminLmax([0,0,0,0],lmax)
 
 # Get the covariance and precision matrices
 N_data = len(s_d.mean.vector)
@@ -203,6 +204,9 @@ cov_n = sacc.Precision(cov_CVnoismo)
 # Create new sacc file (TODO: ask about "dense")
 s_n = sacc.SACC(s_d.tracers,s_d.binning,s_d.mean.vector,cov_n,meta=s_d.meta)
 
+
+
+
 # Save the new covariance and the power spectrum of the data which shall be run via MCMC
 if not os.path.exists(dir_write):
     os.makedirs(dir_write)
@@ -221,23 +225,63 @@ prec_CVnoismo = s_n.precision.getPrecisionMatrix()
 dof = N_data
 
 # Function to calculate chi2
-def print_chi2(di,precision):
+def get_chi2(di,precision):
     # Report the chi2
     return np.dot(di,np.dot(precision,di))
 
-# Difference of N(z) between smooth and jagged
-dNz = NzVec(s_m)-NzVec(s_d)
+## there are already culled in ell
 
+prec_o = s_d.precision.getPrecisionMatrix()
+prec_n = s_n.precision.getPrecisionMatrix()
 # Computing Cls directly from the data
+
 cl_theory = get_theory(hod_params,cosmo_params, s_d,halo_mod_corrector=HMCorrection)
 
+# xar = np.arange(len(cl_theory))
+# errv = np.sqrt(s_d.precision.getCovarianceMatrix().diagonal())
+# #plt.plot(xar,cl_theory,'b-')
+# plt.errorbar(xar,(s_d.mean.vector-cl_theory)/errv)
+
+# plt.show()
+
+
+di = s_d.mean.vector - cl_theory
+
+chi2o = get_chi2(di,prec_o)
+chi2n = get_chi2(di,prec_n)
+
+print ("Chi2 original model, original cov:", chi2o, dof)
+print ("Chi2 original model, new cov ", chi2n)
+
+#Lets perturb dNz, draw from prior_smo
+Nz = NzVec(s_d)
+dNz = np.random.multivariate_normal(np.zeros_like(Nz),prior_smo)
+print ("Sanity: ",np.dot(dNz,np.dot(la.inv(prior_smo),dNz)))
+NzP = Nz+dNz
+s_dp = copy.copy(s_d)
+i=0
+for t in s_dp.tracers:
+    tl = len(t.Nz)
+    t.Nz += dNz[i:i+tl]
+    i+=tl
+
 # Slightly improved computation using taylor expansion
+cl_theory_perturbed = get_theory(hod_params,cosmo_params, s_dp,halo_mod_corrector=HMCorrection)
 cl_theory_taylor = cl_theory + np.dot(Tmat.T,dNz)
 
-# Delta Cl
+di = s_d.mean.vector - cl_theory_perturbed
+chi2po = get_chi2(di,prec_o)
+chi2pn = get_chi2(di,prec_n)
+print ("Chi2 perturbed model, original cov:", chi2po, dof)
+print ("Chi2 perturbed model, new cov ", chi2pn)
+
 di = s_d.mean.vector - cl_theory_taylor
-print("Chi2 (naive + Taylor precision) = ",print_chi2(di,prec))
-print("Chi2 (naive + Taylor + CV+noise+smooth precision) = ",print_chi2(di,prec_CVnoismo))
+chi2to = get_chi2(di,prec_o)
+chi2tn = get_chi2(di,prec_n)
+print ("Chi2 taylor model, original cov:", chi2to, dof)
+print ("Chi2 taylor model, new cov ", chi2tn)
+
+
 
 # Log determinant ratio
 log_det_prec = np.linalg.slogdet(prec)[1]
