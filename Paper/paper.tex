@@ -154,6 +154,48 @@ Note that there are two distinct approximation here. The first is that theory ca
 \subsubsection{Uncertainty due to estimator biases}
 
 \subsubsection{Cosmic Variance in calibrator sample}
+The covariance matrix between two tomographic bins is given by:
+\begin{equation}
+Cov_{ij}=\frac{N_i N_j}{2\pi^2} \int_0^\infty dk_\parallel \cos(k_\parallel(\chi_i-\chi_j))\int_0^\infty dk_\perp k_\perp W_i(k_\parallel,k_\perp)W_j(k_\parallel,k_\perp)P_{\bf gg}({\bf k}),
+\end{equation}
+where we can model the power spectra at each bin centre and for all
+transverse and parallel modes using the Kaiser formula (CITE), which corrects for redshift space distortions through
+the expression:
+\begin{equation}
+P_{gg}({\bf k},z)=\left(b_g(z)+f(z)\frac{k_\parallel^2}{k^2}\right)^2\,P_{mm}(k,z),
+\end{equation}
+where $f(z)$ is
+the logarithmic growth
+rate
+and the
+evolution of the linear galaxy bias is given by $b_g(z) = 0.95/D(z)$
+with $D(z)$ the growth factor.
+
+In this work, we use the galaxy sample in the COSMOS survey as calibrator, which
+covers a total area of
+$A_{\rm sky} = 1.7 \ {\rm deg}^2$ for galaxies with redshifts $z < 2$.
+We model the window function for each bin of the dataset through:
+\begin{equation}
+W(k_\parallel,k_\perp)=j_0(k_\parallel\Delta\chi/2)\,\frac{2 J_1(k_\perp R_{\rm mean})}{k_\perp R_{\rm mean}},
+\end{equation}
+where $R_{mean}$ is the
+physical size of the survey measured at the mean
+distance to the
+tomographic bin, 
+$R_{\rm mean} = 
+\sqrt{\frac{A_{\rm sky}}{\pi}} \chi_{\rm mean}$.
+We assume that the
+cosmic covariance
+between the tomographic bins is negligible, so we estimate the cosmic variance covariance matrix by
+treating each bin independently. We show the resulting correlation matrix of the COSMOS cosmic variance in Fig. \ref{fig:CV}.
+
+\begin{figure}[ht]
+\centering  
+\includegraphics[width=1.\textwidth]{Paper/corr_CV_0.png}
+\caption{Cosmic variance (CV) correlation matrix with subtracted diagonal for the first tomographic bin of the HSC data.} 
+\label{fig:CV}
+\end{figure}
+
 
 \subsubsection{Smoothness prior}
 
@@ -166,7 +208,110 @@ Note that there are two distinct approximation here. The first is that theory ca
 
 \section{Appplication to HSC clustering data}
 \label{sec:hsc}
+\an{Some citations are currently missing but I will put them in later.}
+We apply the method outlined above to the data obtained in Ref.~\cite{1912.08209}. This work measured the angular galaxy clustering power spectrum from HSC DR1 data. In the following, we give a very brief summary of the methodology employed in this work and refer the reader to Ref.~\cite{1912.08209} for more details.
+\subsection{Background theory}
+The angular clustering signal for galaxies in redshift bins $i, j$ with photo-$z$ distributions $p^i(z), p^j(z)$ can be modeled using the Limber approximation as \cite{1953ApJ...117..134L, 1992ApJ...388..272K, Kaiser:1998}
+    \begin{equation}\label{eq:cell_gg_limber}
+      C^{ij}_\ell = \int \mathrm{d}z\,\frac{H(z)}{\chi^2(z)} p^i(z)p^j(z)\,P_{gg}\left(z,k=\frac{\ell+1/2}{\chi(z)}\right),
+    \end{equation}
+where $P_{gg}(z,k)$ denotes the underlying 3D galaxy power spectrum, $\chi(z)$ is the comoving distance and $H(z)$ denotes the Hubble parameter at redshift $z$. As can be seen from Eq.~\ref{eq:cell_gg_limber}, the spherical harmonic power spectrum $C_{\ell}$ depends linearly on the photometric redshift distributions $p^i(z)$, which facilitates the computation of the $T$ matrix defined above. 
 
+We follow Ref.~\cite{1912.08209} and compute theoretical predictions for the galaxy power spectrum $P_{gg}(z,k)$ within the halo model combined with halo occupation distribution modeling \cite{2000MNRAS.318.1144P,2002PhR...372....1C,2002ApJ...575..587B,2005ApJ...633..791Z,2013MNRAS.430..725V}. 
+\subsection{The HSC dataset}
+The Hyper-Suprime Cam survey is an on-going photometric galaxy survey survey focused mainly on weak gravitational lensing. The analysis in Ref.~\cite{1912.08209} is based on the publicly-available HSC DR1 data, whose so-called wide fields cover approximately 108 square degrees on the sky, subdivided into seven distinct patches. Ref.~\cite{1912.08209} used these data to compute spherical harmonic galaxy clustering power spectra for four tomographic redshift bins between $z=0.15$ and $z=1.5$, taking both auto- and cross-correlations into account. These power spectra have been corrected for observational and extragalactic systematics by deprojection at the map-level \cite{2019MNRAS.484.4127A}. Finally, following Ref.~\cite{2019PASJ...71...43H}, photometric redshift distributions have been estimated by cross-matching HSC galaxies to galaxies in the COSMOS 30-band photometric catalog presented in Ref.~\cite{2016ApJS..224...24L}.
+\subsection{Validating the linear expansion}
+
+
+\begin{figure}[ht]
+\centering  
+\includegraphics[width=1.2\textwidth]{Paper/Tmat.png}
+\caption{Visualization of the derivative matrix $T_{mn} = {\partial t_m}/{\partial N_n}$. \todo{Make look nicer: split into tomo bins}} 
+\label{fig:Tmat}
+\end{figure}
+
+\begin{itemize}
+  \item Plot showing $T$
+  \item Plot showing exact $C_\ell$ vs linear prediction. \todo{Make your plots into subplots; verify the Tmatrix}
+\end{itemize}{}
+\subsection{Impact of N(z) uncertainties on final parameters}
+
+
+\begin{figure}[ht]
+\centering
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[width=1.\linewidth]{Paper/corr_data.png}
+  \label{fig:sub1}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[width=1.\linewidth]{Paper/corr_diff.png}
+  \label{fig:sub2}
+\end{subfigure}
+\caption{Correlation matrix for the fiducial HSC dataset (\textit{left}) and difference with its marginalized version (\textit{right}).}
+\label{fig:fid_marg_cov}
+\end{figure}
+
+\begin{figure}[ht]
+\centering  
+\includegraphics[width=1.\textwidth]{Paper/triangle_fid_marg.png}
+\caption{Triangle plot with constraints of the 6 HOD parameters obtained using the covariance matrix from the full HSC dataset (\textit{red}) and from its marginalized version (\textit{blue}).}
+\label{fig:triangle_fid_marg}
+\end{figure}
+
+\begin{figure}[ht]
+\centering  
+\includegraphics[width=1.\textwidth]{Paper/triangle_marg_tests.png}
+\caption{Triangle plot with constraints of the 6 HOD parameters obtained using different choices for the marginalized covariance matrix: in \textit{green} is shown the result where the diagonal noise is set to a very large value ($A_{\rm noise} = 42$); in \textit{gray} is shown the case where the marginalization is performed assuming fiducial HOD-model values which are $1\sigma$ away from their posterior mean values taken from \todo{CITE Andrina's paper}; in \textit{red} is shown the case where the smoothing has been removed ($A_{\rm smooth} = 0$); and finally in \textit{blue} is shown the fiducial case with $A_{\rm noise} = 4$ and $A_{\rm smooth} = 0.25$.}
+\label{fig:triangle_marg_tests}
+\end{figure}
+
+Plots showing the effects of different things:
+\begin{itemize}
+\item Compare different choices of prior (smoothness, no smoothing, different degrees of noise etc.)
+\item Triangle plot with T matrix computed from a different fiducial.
+\item Compare CV-only covariance vs. no covariance.
+\item Compare old marginalization vs. new one (maybe same plot).
+\item Compare old marginalization with CV priors (importance sample).
+\end{itemize}
+
+Other results:
+\begin{itemize}
+  \item smoothness does nothing
+  \item quote $\chi^2$ values \todo{Make a table}
+\end{itemize}
+
+
+
+\begin{center}
+ \begin{tabular}{c | c c c} 
+ \hline\hline
+ Parameter & HSC covariance, full & HSC covariance, HOD & Marginalized covariance, HOD \\ [0.5ex] 
+ \hline
+ $\chi^2/\nu$ & 87.49/80 & 94.97/88 & 91.06/88 \\ 
+
+ $\mu_{{\rm min},p}$ & -0.52 & -1.47 & -1.42 \\
+
+ $\mu_{\rm min}$ & 11.88 & 11.73 & 11.73 \\
+
+ $\mu_{0,p}$ & 1.68 & 4.86 & 5.03 \\
+ 
+ $\mu_{0}$ & 0.02 & 11.53 & 11.41 \\
+
+ $\mu_{1,p}$ & 0.87 & -0.58 & -0.51 \\
+
+ $\mu_{1}$ & 13.073 & 12.866 & 12.873 \\ [1ex] 
+ \hline
+ \hline
+\end{tabular}
+\end{center}
+%[-1.42408101 11.73454764  5.0302023  11.41301207 -0.50980494 12.87323354]
+%[-1.47048791 11.73097558  4.85774675 11.52813388 -0.58053445 12.86613972]
+%[ 2.18173486e-02 -1.39414027e-02 -4.61928378e-03  1.27879857e-02
+% -5.18739083e-01  1.18844059e+01  1.67767553e+00  2.01822301e-02
+%  8.65219859e-01  1.30726966e+01 -1.64307267e-01 -3.19342441e-02
+%  3.97310971e-02  3.88321407e-02]
 
 
 \section{Conclusions}
