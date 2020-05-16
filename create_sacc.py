@@ -6,18 +6,16 @@ import pyccl as ccl
 import copy
 import shutil
 import matplotlib.pyplot as plt
-from modules.halo_mod_corr import HaloModCorrection
-from modules.theory_cls import get_theory
-from calculate_smooth_s_and_prior import get_smooth_s_and_prior
-import scipy.linalg as la
 
-# Note to self and reader -> this should eventually be run with the real data, i.e.
-# read = 'COADDED'; write = 'MARG'
-# or for realistic NG covariance
+from desclss.halo_mod_corr import HaloModCorrection
+from calculate_smooth_s_and_prior import get_smooth_s_and_prior
+from HSC_wrapper import obtain_Tmat
+from HSC_wrapper import get_theory
+
+# Use realistic NG covariance
 # read = 'NEWCOV_COADDED'; write = 'NEWCOV_MARG'
 # Important REMOVE l-cuts for the real run
 # TODO we are assuming cosmic variance of the tomographic bins is uncorrelated
-# For testing I am using read = 'COADD' and write = 'test_2' 
 
 try:
     # Names of the data read and write directories 
@@ -57,6 +55,16 @@ hod_sigmas = {'lmmin':0.22, 'lmminp':2.0,
               'm0':4.0, 'm0p':5.0,
               'm1':0.27, 'm1p':2.6}
 
+Z_params = {'zshift_bin0':0.000,'zshift_bin1':-0.016,\
+            'zshift_bin2':-0.01,'zshift_bin3':0.01,\
+            'zwidth_bin0':-0.05,'zwidth_bin1':-0.01,\
+            'zwidth_bin2':0.035,'zwidth_bin3':0.05}
+
+Z_params0 = {'zshift_bin0':0.000,'zshift_bin1':-0.0,\
+            'zshift_bin2':-0.0,'zshift_bin3':0.0,\
+            'zwidth_bin0':-0.0,'zwidth_bin1':-0.0,\
+            'zwidth_bin2':0.0,'zwidth_bin3':0.0}
+
 # Here are some choice that we make for the tests we are running
 # TEST #1
 if "1sigma" in write:
@@ -90,21 +98,6 @@ def obtain_improved_cov(cov,Tmat,prior):
     cov_m = cov + np.dot(np.dot(Tmat.T,np.linalg.inv(prior)),Tmat)
     return cov_m
 
-# The T matrix is simply a matrix containing the first der of Cl with resp to Nz
-def obtain_Tmat(s_data,Nz,Nztr,Nd,hod_pars,cosmo_pars,HMCorr,delta=1.e-3):
-    # Create T matrix
-    Tmat = np.zeros((Nz,Nd))
-    for i in range(Nz):
-        print ("tomo bin, z-sample = %i / %i "%(i//Nztr,i%Nztr))
-        s_tmp = copy.deepcopy(s_data)
-        s_tmp.tracers[i//Nztr].Nz[i % Nztr] += delta
-        cl_plus = get_theory(hod_pars, cosmo_pars, s_tmp, halo_mod_corrector=HMCorr)    
-        s_tmp = copy.deepcopy(s_data)
-        s_tmp.tracers[i//Nztr].Nz[i % Nztr] -= delta
-        cl_minus = get_theory(hod_pars, cosmo_pars, s_tmp, halo_mod_corrector=HMCorr)    
-        Tmat[i,:] = (cl_plus-cl_minus)/(2*delta)
-    return Tmat
-
 # Auxiliary function to get the Nzs for all (4) tracers
 def NzVec(s):
     return np.hstack([t.Nz for t in s.tracers])
@@ -117,13 +110,10 @@ HMCorrection = HaloModCorrection(cosmo, k_range=[1e-4, 1e2], nlk=256, z_range=[0
 
 # Load the data whose precision matrix we would like to modify
 s_d = sacc.SACC.loadFromHDF(dir_read+"/power_spectra_wdpj.sacc")
+s_noi = sacc.SACC.loadFromHDF(dir_read+"/noi_bias.sacc")
 
 # Calculate the smooth s_m = (P0+D)^-1 P0 s0 and smooth prior prior_smo = P0+D
 s_m, prior_smo = get_smooth_s_and_prior(s_d,cosmo,want_prior=True,A_smooth=A_smooth,noi_fac=noi_fac)
-
-# Old version of the code:
-#prior_smo = obtain_prior_smo(s_d,s_m,Nz_total,N_tracers,Nz_per_tracer,cosmo)
-#s_m = sacc.SACC.loadFromHDF(dir_read+"/power_spectra_wdpj_mean.sacc")
 
 # Number of tracers and z-bins
 Nz_per_tracer = len(s_d.tracers[0].z)
@@ -142,7 +132,7 @@ if os.path.isfile("Tmat_"+read+".npy"):
     print ("Loading cached Tmat")
     Tmat = np.load("Tmat_"+read+".npy")
 else:
-    Tmat = obtain_Tmat(s_d,Nz_total,Nz_per_tracer,N_data,hod_params,cosmo_params,HMCorrection)
+    Tmat = obtain_Tmat(s_d,s_noi,hod_params,Z_params,HMCorrection)
     np.save("Tmat_"+read+".npy",Tmat)
 
 # Obtain the new covariance matrix
@@ -183,7 +173,7 @@ prec_o = s_d.precision.getPrecisionMatrix()
 prec_n = s_n.precision.getPrecisionMatrix()
 # Computing Cls directly from the data
 
-cl_theory = get_theory(hod_params,cosmo_params, s_d,halo_mod_corrector=HMCorrection)
+cl_theory = get_theory(s_d,s_noi,hod_params,Z_params,HMCorrection)
 
 # xar = np.arange(len(cl_theory))
 # errv = np.sqrt(s_d.precision.getCovarianceMatrix().diagonal())
@@ -204,7 +194,7 @@ print ("Chi2 original model, new cov ", chi2n)
 #Lets perturb dNz, draw from prior_smo
 Nz = NzVec(s_d)
 dNz = np.random.multivariate_normal(np.zeros_like(Nz),prior_smo)
-print ("Sanity: ",np.dot(dNz,np.dot(la.inv(prior_smo),dNz)))
+print ("Sanity: ",np.dot(dNz,np.dot(np.linalg.inv(prior_smo),dNz)))
 NzP = Nz+dNz
 s_dp = copy.copy(s_d)
 i=0
@@ -214,7 +204,7 @@ for t in s_dp.tracers:
     i+=tl
 
 # Slightly improved computation using taylor expansion
-cl_theory_perturbed = get_theory(hod_params,cosmo_params, s_dp,halo_mod_corrector=HMCorrection)
+cl_theory_perturbed = get_theory(s_d,s_noi,hod_params,Z_params,HMCorrection)
 cl_theory_taylor = cl_theory + np.dot(Tmat.T,dNz)
 
 di = s_d.mean.vector - cl_theory_perturbed

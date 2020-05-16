@@ -2,8 +2,7 @@ import sacc
 import copy
 import numpy as np
 import pyccl as ccl
-from modules.halo_mod_corr import HaloModCorrection
-from modules.theory_cls import get_theory
+from HSC_wrapper import get_theory
 from calculate_smooth_s_and_prior import get_smooth_s_and_prior
 
 # HSC modules
@@ -28,7 +27,7 @@ dir_read = "data/"+read
 #dir_read = "data/NEWCOV_MARG_largenoise"
 #dir_read = "data/NEWCOV_MARG_nosmooth_largenoise"
 only_6HOD = bool(int(sys.argv[2]))
-test_Tmat = 0
+test_Tmat = 1
 test_zparams = 0
 verbose = 0
 
@@ -79,6 +78,7 @@ cosmo = ccl.Cosmology(**cosmo_params)
 
 # Load the data whose precision matrix we would like to modify
 s_d = sacc.SACC.loadFromHDF(dir_read+"/power_spectra_wdpj.sacc")
+s_noi = sacc.SACC.loadFromHDF(dir_read+"/noi_bias.sacc")
 
 # Calculate the smooth s_m = (P0+D)^-1 P0 s0 and smooth prior prior_smo = P0+D
 s_m, prior_m = get_smooth_s_and_prior(s_d,cosmo,want_prior=True,A_smooth=0.25,noi_fac=4.)
@@ -88,14 +88,13 @@ s_m, prior_m = get_smooth_s_and_prior(s_d,cosmo,want_prior=True,A_smooth=0.25,no
 s_d.cullLminLmax([0,0,0,0],lmax)
 
 # T matrix
-#Tmat = np.load("Tmat_test_like.npy")
 Tmat = np.load("Tmat_NEWCOV_COADDED.npy")
 
 # Halo Model Correction: have checked that this is the same as what is applied for the MCMC run
 HMCorrection = HaloModCorrection(cosmo, k_range=[1e-4, 1e2], nlk=256, z_range=[0., 3.], nz=50)
 
 # Computing Cls directly from the data
-cl_theory = get_theory(hod_params,cosmo_params, s_d, halo_mod_corrector=HMCorrection)
+cl_theory = get_theory(s_d,s_noi,hod_params,z_params,HMCorrection)
 
 # Get the covariance and precision matrices
 N_data = len(s_d.mean.vector)
@@ -120,14 +119,8 @@ if test_Tmat:
         if i == 2:
             gaussian_draw = np.random.multivariate_normal(np.zeros(nz_size), cov_m[i*nz_size:(i+1)*nz_size,i*nz_size:(i+1)*nz_size])
             nz_new[:] += gaussian_draw
-            #arr = np.hstack((np.arange(5),np.arange(5)[::-1]))/1.e3
-            #arr = np.repeat(arr, 10)
-            #s_m.tracers[i].Nz = arr
-            #s_new.tracers[i].Nz = s_m.tracers[i].Nz+0.001
-            #print(np.sum(arr),np.sum(s_new.tracers[i].Nz))
-    cl_theory_mean = get_theory(hod_params,cosmo_params, s_m, halo_mod_corrector=HMCorrection)
-    cl_theory_new = get_theory(hod_params,cosmo_params, s_new, halo_mod_corrector=HMCorrection)
-    print(np.sum(s_new.tracers[2].Nz))
+    cl_theory_mean = get_theory(s_m,s_noi,hod_params,z_params,HMCorrection)
+    cl_theory_new = get_theory(s_new,s_noi,hod_params,z_params,HMCorrection)
     dNz_m = NzVec(s_new)-NzVec(s_m)
     cl_theory_Taylor = cl_theory_mean + np.dot(Tmat.T,dNz_m)
     
