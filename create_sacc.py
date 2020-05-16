@@ -30,7 +30,6 @@ dir_write = "data/"+write
 
 # l-cuts
 # Remove this for the actual MCMC run as the sampler makes its own cut TODO
-#lmax = [2000,2000,2600,3200]
 lmax = [2170.58958919, 2515.39193451, 3185.36076391, 4017.39370804]
 
 # choice for noise and smoothing
@@ -82,18 +81,7 @@ if "largenoise" in write:
     noi_fac = 42.
 
 # TEST #4 there is this test too "MARG_nosmooth_largenoise":
-    
-# Implementation of the CV+noise precision matrix from Eq. 7 in the HSC Nz marg overleaf
-# NB: the T matrix here is the transpose of what is written in the equations on overleaf
-# !!!Important!!! Function currently not called since we use the simplified obtain_improved_cov
-def obtain_improved_prec(prec,Tmat,prior):
-    # The expressions inside the bracket, before the bracket and after the bracket
-    bracket = np.linalg.inv((np.dot(np.dot(Tmat,prec),Tmat.T)+prior))
-    prebracket = np.dot(prec,Tmat.T)
-    postbracket = np.dot(Tmat,prec)
-    # Assembling everything into one
-    prec_m = prec - np.dot(np.dot(prebracket,bracket),postbracket)
-    return prec_m
+
 
 # This is the improved covariance with David's simplification (Woodbury matrix identity)
 # NB: the T matrix here is the transpose of what is written in the equations on overleaf
@@ -103,58 +91,23 @@ def obtain_improved_cov(cov,Tmat,prior):
     return cov_m
 
 # The T matrix is simply a matrix containing the first der of Cl with resp to Nz
-def obtain_Tmat(s_data,Nz,Nztr,hod_pars,cosmo_pars,HMCorr,delta=1.e-3):
+def obtain_Tmat(s_data,Nz,Nztr,Nd,hod_pars,cosmo_pars,HMCorr,delta=1.e-3):
     # Create T matrix
-    Tmat = []
+    Tmat = np.zeros((Nz,Nd))
     for i in range(Nz):
-        print ("%i / %i "%(i,Nz))
+        print ("tomo bin, z-sample = %i / %i "%(i//Nztr,i%Nztr))
         s_tmp = copy.deepcopy(s_data)
         s_tmp.tracers[i//Nztr].Nz[i % Nztr] += delta
         cl_plus = get_theory(hod_pars, cosmo_pars, s_tmp, halo_mod_corrector=HMCorr)    
         s_tmp = copy.deepcopy(s_data)
         s_tmp.tracers[i//Nztr].Nz[i % Nztr] -= delta
         cl_minus = get_theory(hod_pars, cosmo_pars, s_tmp, halo_mod_corrector=HMCorr)    
-        Tmat.append((cl_plus-cl_minus)/(2*delta))
-        print (Tmat[-1])
-    Tmat = np.array(Tmat)
+        Tmat[i,:] = (cl_plus-cl_minus)/(2*delta)
     return Tmat
 
 # Auxiliary function to get the Nzs for all (4) tracers
 def NzVec(s):
     return np.hstack([t.Nz for t in s.tracers])
-
-# !!!Important!!! Function is currently not being called since we use different s_mean recipe
-# Compute the smoothed prior with CV and noise
-def obtain_prior_smo(s_data,s_mean,Nz,Ntr,Nztr,cosmology):
-    from compute_CV_cov import compute_covmat_cv
-    from smoothness import obtain_smoothing_D
-
-    # The difference between smooth and jagged
-    dNz = NzVec(s_mean)-NzVec(s_data)
-
-    # assume this is a good proxy for the prior for now
-    covmat_noise = np.diag(2.*dNz**2)
-
-    # Estimating cosmic variance
-    # total cv covmat
-    # We assume that the tomo bins are not correlated
-    covmat_cv = np.zeros((Nz,Nz))
-    for i in range(Ntr):
-        # cosmic variance covmat for each tracer
-        covmat_cv_per_tracer = compute_covmat_cv(cosmology,s_mean.tracers[i].z,s_mean.tracers[i].Nz)
-        covmat_cv[i*Nztr:(i+1)*Nztr,i*Nztr:(i+1)*Nztr] = covmat_cv_per_tracer
-        
-    # impose smoothness
-    A_smooth = A_smooth
-    smooth_prior = A_smooth**2*obtain_smoothing_D(s_mean,first=True,second=True)
-
-    # obtain prior with CV and noise
-    prior = np.linalg.inv(covmat_cv+covmat_noise)
-    # obtain the complete smooth prior
-    prior_smo = prior+smooth_prior
-    # This is prior_smo = P0+D
-    return prior_smo
-
 
 # Theory prediction
 cosmo = ccl.Cosmology(**cosmo_params)
@@ -189,11 +142,8 @@ if os.path.isfile("Tmat_"+read+".npy"):
     print ("Loading cached Tmat")
     Tmat = np.load("Tmat_"+read+".npy")
 else:
-    Tmat = obtain_Tmat(s_d,Nz_total,Nz_per_tracer,hod_params,cosmo_params,HMCorrection)
+    Tmat = obtain_Tmat(s_d,Nz_total,Nz_per_tracer,N_data,hod_params,cosmo_params,HMCorrection)
     np.save("Tmat_"+read+".npy",Tmat)
-
-# Obtain the new precision matrix !!!!!!!!!!!! NOT USED ANYMORE !!!!!!!!!!
-#prec_CVnoismo = obtain_improved_prec(prec,Tmat,prior_smo)
 
 # Obtain the new covariance matrix
 cov_CVnoismo = obtain_improved_cov(cov,Tmat,prior_smo)
@@ -203,8 +153,6 @@ cov_n = sacc.Precision(cov_CVnoismo)
 
 # Create new sacc file (TODO: ask about "dense")
 s_n = sacc.SACC(s_d.tracers,s_d.binning,s_d.mean.vector,cov_n,meta=s_d.meta)
-
-
 
 
 # Save the new covariance and the power spectrum of the data which shall be run via MCMC
