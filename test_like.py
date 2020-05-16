@@ -13,21 +13,27 @@ from desclss.halo_mod_corr import HaloModCorrection
 import yaml
 
 import matplotlib.pyplot as plt
+import sys
+from scipy.interpolate import interp1d
 
 #######################################
 ###              MY CODE            ###
 #######################################
 # Names
-#dir_read = "data/COADDED" #orig
-#dir_read = "data/MARG"
+read = sys.argv[1]# NEWCOV_COADDED
+dir_read = "data/"+read
+
 #dir_read = "data/NEWCOV_MARG"
-dir_read = "data/NEWCOV_COADDED"
-#dir_read = "data/MARG_nosmooth"
-#dir_read = "data/MARG_largenoise"
-#dir_read = "data/MARG_nosmooth_largenoise"
-only_6HOD = 1
+#dir_read = "data/NEWCOV_MARG_nosmooth"
+#dir_read = "data/NEWCOV_MARG_largenoise"
+#dir_read = "data/NEWCOV_MARG_nosmooth_largenoise"
+only_6HOD = bool(int(sys.argv[2]))
+test_Tmat = 0
+test_zparams = 0
+verbose = 0
 
 np.random.seed(300)
+
 
 # Function to calculate chi2
 def print_chi2(di,precision):
@@ -102,44 +108,72 @@ dNz = NzVec(s_m)-NzVec(s_d)
 # Slightly improved computation using taylor expansion
 cl_theory_taylor = cl_theory + np.dot(Tmat.T,dNz)
 
-
 # Test how well the Cls are captured by the Tmatrix
-cov_m = np.linalg.inv(prior_m)
-s_new = copy.deepcopy(s_m)
-for i in range(4):
-    nz_new = s_new.tracers[i].Nz
-    nz_size = len(nz_new)
-    if i == 2:
-        gaussian_draw = np.random.multivariate_normal(np.zeros(nz_size), cov_m[i*nz_size:(i+1)*nz_size,i*nz_size:(i+1)*nz_size])
-        nz_new[:] += gaussian_draw
+if test_Tmat:
+    N_tomo = 4
+    zs = s_m.tracers[0].z
+    nz_size = len(zs)
+    cov_m = np.linalg.inv(prior_m)
+    s_new = copy.deepcopy(s_m)
+    for i in range(N_tomo):
+        nz_new = s_new.tracers[i].Nz
+        if i == 2:
+            gaussian_draw = np.random.multivariate_normal(np.zeros(nz_size), cov_m[i*nz_size:(i+1)*nz_size,i*nz_size:(i+1)*nz_size])
+            nz_new[:] += gaussian_draw
+            #arr = np.hstack((np.arange(5),np.arange(5)[::-1]))/1.e3
+            #arr = np.repeat(arr, 10)
+            #s_m.tracers[i].Nz = arr
+            #s_new.tracers[i].Nz = s_m.tracers[i].Nz+0.001
+            #print(np.sum(arr),np.sum(s_new.tracers[i].Nz))
+    cl_theory_mean = get_theory(hod_params,cosmo_params, s_m, halo_mod_corrector=HMCorrection)
+    cl_theory_new = get_theory(hod_params,cosmo_params, s_new, halo_mod_corrector=HMCorrection)
+    print(np.sum(s_new.tracers[2].Nz))
+    dNz_m = NzVec(s_new)-NzVec(s_m)
+    cl_theory_Taylor = cl_theory_mean + np.dot(Tmat.T,dNz_m)
+    
+    nrows = 5
+    ncols = 2
+    fs = (ncols*4.,nrows*3.)
+    fig, axs = plt.subplots(nrows,ncols,figsize=fs)
+    plot_no = 0
+    ncomb = nrows*ncols
+    for i1, i2, _, ells_binned, ndx in s_d.sortTracers():
+        cl_tay = cl_theory_Taylor[ndx]
+        cl_ini = cl_theory_mean[ndx]
+        cl_per = cl_theory_new[ndx]
+        plot_no += 1
+        print(plot_no)
+        #print(i1,i2,_,ells_binned,ndx)
+        ax = axs[(plot_no-1)//ncols,(plot_no-1)%ncols]
+        plt.subplot(nrows,ncols,plot_no)
+        plt.plot(ells_binned,cl_ini,'black',lw=3.,label='Initial')
+        plt.plot(ells_binned,cl_tay,'dodgerblue',lw=2.,label='Taylor')
+        plt.plot(ells_binned,cl_per,'purple',lw=2.,label='Perturbed')
+        if plot_no == 1: plt.legend()
 
-cl_theory_mean = get_theory(hod_params,cosmo_params, s_m, halo_mod_corrector=HMCorrection)
-cl_theory_new = get_theory(hod_params,cosmo_params, s_new, halo_mod_corrector=HMCorrection)
-dNz_m = NzVec(s_new)-NzVec(s_m)
-cl_theory_Taylor = cl_theory_mean + np.dot(Tmat.T,dNz_m)
-
-plt.plot(s_m.tracers[0].z,s_m.tracers[2].Nz,label='initial')
-plt.plot(s_new.tracers[0].z,s_new.tracers[2].Nz,label='perturbed')
-plt.legend()
-plt.xlabel("z")
-plt.ylabel("N(z)")
-plt.savefig("Nz.png")
-plt.close()
-
-plt.figure(figsize=(18,4))
-plt.plot(np.arange(len(cl_theory_mean)),cl_theory_Taylor/cl_theory_mean,'k',ls='--',label='taylor/initial')
-plt.plot(np.arange(len(cl_theory_mean)),cl_theory_new/cl_theory_mean,'dodgerblue',ls='-.',label='perturbed/initial')
-plt.legend()
-plt.ylabel("Cl ratio")
-plt.xlabel("l bins")
-plt.savefig("Cl_comparison.png")
-
-#quit()
+        if plot_no >= ncomb-ncols+1:
+            plt.xlabel(r"$\ell$")
+        if plot_no%ncols == 1:
+            plt.ylabel(r"$C_\ell$")
+        plt.text(0.1, 0.05,'('+str(i1)+','+str(i2)+')',ha='center',va='center',transform=ax.transAxes)
+        plt.yscale('log')
+        plt.xscale('log')
+    plt.savefig("Cl_comparison.png")
+    plt.close()
+    
+    plt.plot(s_m.tracers[2].z,s_m.tracers[2].Nz,label='initial')
+    plt.plot(s_new.tracers[2].z,s_new.tracers[2].Nz,label='perturbed')
+    plt.legend()
+    plt.xlabel("z")
+    plt.ylabel("N(z)")
+    plt.savefig("Nz.png")
+    plt.close()
+    quit()
 
 # Delta Cl
 di = s_d.mean.vector - cl_theory_taylor
-print("Chi2 (naive + Taylor precision) = ",print_chi2(di,prec))
-print("lnprob (naive + Taylor precision) = ",-0.5*print_chi2(di,prec))
+if verbose: print("Chi2 (naive + Taylor precision) = ",print_chi2(di,prec))
+if verbose: print("lnprob (naive + Taylor precision) = ",-0.5*print_chi2(di,prec))
 
 #######################################
 ###             HSC CODE            ###
@@ -150,13 +184,12 @@ def cutLranges(saccs, kmax, cosmo, Ntomo, zeff=None, saccs_noise=None):
     zeff = np.zeros(Ntomo)
     for i, t in enumerate(saccs[0].tracers):
         zeff[i] = t.meanZ()
-    print('zeff = {}.'.format(zeff))
+    if verbose: print('zeff = {}.'.format(zeff))
 
     assert Ntomo == zeff.shape[0], 'zeff shape does not match number of tomographic bins.'
-    print('Computing lmax according to specified kmax = {}.'.format(kmax))
+    if verbose: print('Computing lmax according to specified kmax = {}.'.format(kmax))
 
     lmax = [2170.58958919, 2515.39193451, 3185.36076391, 4017.39370804]
-    #lmax = [2000,2000,2600,3200]#kmax2lmax(kmax, zeff, cosmo)
 
     if Ntomo == 1:
         lmin = [0]
@@ -165,7 +198,7 @@ def cutLranges(saccs, kmax, cosmo, Ntomo, zeff=None, saccs_noise=None):
     else:
         print ("weird Ntomo")
 
-    print('lmin = {}, lmax = {}.'.format(lmin, lmax))
+    if verbose: print('lmin = {}, lmax = {}.'.format(lmin, lmax))
 
     for i, s in enumerate(saccs):
         s.cullLminLmax(lmin, lmax)
@@ -175,8 +208,7 @@ def cutLranges(saccs, kmax, cosmo, Ntomo, zeff=None, saccs_noise=None):
     return saccs, saccs_noise
 
 
-print("HSC part starts")
-
+# HSC part
 
 saccs = [s_d]
 saccs_noise = [sacc.SACC.loadFromHDF(dir_read+"/noi_bias.sacc")]
@@ -198,9 +230,9 @@ for key in fit_params.keys():
 cl_params = config['cl_params']
 def_params = config['default_params']
 sacc_params = config['sacc_params']
-print(fit_params)
-print(cl_params)
-print(def_params)
+if verbose: print(fit_params)
+if verbose: print(cl_params)
+if verbose: print(def_params)
 
 saccs, saccs_noise = cutLranges(saccs, sacc_params['kmax'], cosmo=None,
                                 Ntomo=Ntomo, saccs_noise=saccs_noise)
@@ -218,7 +250,7 @@ params = np.zeros((nparams, 4))
 for key in fit_params.keys():
     param_mapping[key] = fit_params[key][0]
     params[fit_params[key][0], :] = fit_params[key][1:]
-print("FIT PARAMS: ",fit_params)
+if verbose: print("FIT PARAMS: ",fit_params)
 
 # bias
 config['default_params'].update(cl_params['bg'])
@@ -229,59 +261,69 @@ th.setup()
 lik = HSCLikeModule(saccs, temperature=None)
 lik.setup()
 
-i = 0#-50#-2#-1#1
+i = int(sys.argv[3])
 pars_min = params[:,1]
 pars_max = params[:,2]
-# randomness
+
 # i can vary between -5 and 5
 pars = params[:, 0]+i*0.1*params[:, 3]
 cl_theory_hsc = th.compute_theory(pars)
-print("PARS:", pars)
+if verbose: print("PARS:", pars)
 
-'''
-print("START")
-for key in fit_params.keys():
-    if key in hod_params.keys():
-        fit_params[key][1] = hod_params[key]
-    else:
-        fit_params[key][1] = z_params[key]
-print("FIT PARAMS: ",fit_params)
 
-param_mapping = {}
-nparams = len(fit_params.keys())
-params = np.zeros((nparams, 4))
-for key in fit_params.keys():
-    param_mapping[key] = fit_params[key][0]
-    params[fit_params[key][0], :] = fit_params[key][1:]
+# This part is for testing the Chi2 between the theory with z shifts and widths and no shifts; 
+if test_zparams:
+    if i != 0: print("The index i (sys.argv[3]) must be set to 0 for this test"); quit()
+    if only_6HOD == 0: print("only_6HOD (sys.argv[2]) must be set to 1 for this test since we are comparing with and without the width and shift parameters"); quit()
 
-th_zparams = HSCCoreModule(param_mapping, def_params, cl_params, saccs, noise, HMCorr=HMCorrection)
-th_zparams.setup()
+    # with shift and widths
+    for key in fit_params.keys():
+        if key in hod_params.keys():
+            fit_params[key][1] = hod_params[key]
+        else:
+            fit_params[key][1] = z_params[key]
+    print("FIT PARAMS: ",fit_params)
 
-pars = params[:, 0]
-cl_theory_hsc_zparams = th_zparams.compute_theory(pars)
-print("PARS:", pars)
+    param_mapping = {}
+    nparams = len(fit_params.keys())
+    params = np.zeros((nparams, 4))
+    for key in fit_params.keys():
+        param_mapping[key] = fit_params[key][0]
+        params[fit_params[key][0], :] = fit_params[key][1:]
 
-di = cl_theory_hsc_zparams[0]-cl_theory_hsc[0]
-print("chi2 for "+dir_read+" = ",print_chi2(di,prec))
+    th_zparams = HSCCoreModule(param_mapping, def_params, cl_params, saccs, noise, HMCorr=HMCorrection)
+    th_zparams.setup()
 
-print("REMOVE")
-quit()
-'''
+    pars = params[:, 0]
+    cl_theory_hsc_zparams = th_zparams.compute_theory(pars)
+    print("PARS:", pars)
+
+    # Compute the chi2 of the mean posterior HSC paper result (chi2 = 49)
+    print(-2.*lik.computeLikelihoodFromCl(cl_theory_hsc_zparams))
+
+
+    di = cl_theory_hsc_zparams[0]-cl_theory_hsc[0]
+    print("chi2 for "+dir_read+" = ",print_chi2(di,prec))
+    quit()
+
+# Likelihood part
 
 # This should correspond to the best fit value from the HSC paper, but I don't think it does [-73.5]
 lnP = lik.computeLikelihoodFromCl(cl_theory_hsc)
-print("lnprob theory_hsc = ",lnP)
-
+if verbose: print("lnprob theory_hsc = ",lnP)
 # Maybe that's because I am not subtracting the noise bias...
 
 # This should be close to 0, I thought as it is just coming from the data [-14974539.5]
 lnP = lik.computeLikelihoodFromCl(cl_theory)
-print("lnprob theory_boryana = ",lnP)
+if verbose: print("lnprob theory_boryana = ",lnP)
 
 # I believe this should be matching my lnprob [-562.] for cl_theory_taylor, but it's not [-13583893.]
 lnP = lik.computeLikelihoodFromCl(cl_theory_taylor)
-print("lnprob theory_boryana_taylor = ",lnP)
+if verbose: print("lnprob theory_boryana_taylor = ",lnP)
 
+# Minimization part
+
+xtol = 1.e-5
 from scipy.optimize import minimize
 
 def chi2(x):
@@ -289,12 +331,11 @@ def chi2(x):
         cl = th.compute_theory(x)
         return -2.*lik.computeLikelihoodFromCl(cl)
     else:
-        print("<><> infinity with ",x)
+        if verbose: print(" <><> infinity with ",x)
         return np.inf
 
 x0 = pars
 res = minimize(chi2, x0, method='powell',\
-               options={'xtol': 1e-5, 'disp': True})
+               options={'xtol': xtol, 'disp': True})
 
-print("HOD params:")
 print(res.x)
