@@ -208,9 +208,9 @@ saccs_noise = [sacc.SACC.loadFromHDF(dir_read+"/noi_bias.sacc")]
 Ntomo = len(saccs[0].tracers) ## number of tomo bins
 
 if only_6HOD:
-    config = yaml.load(open("test_like_6HOD.yaml"))
+    config = yaml.load(open("config_6HOD.yaml"))
 else:
-    config = yaml.load(open("test_like.yaml"))
+    config = yaml.load(open("config_6HOD_zparams.yaml"))
 
 fit_params = config['fit_params']
 # got a raise exception

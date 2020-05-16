@@ -22,7 +22,7 @@ def cutLranges(saccs,saccs_noise):
 
 def setup(hod_params,z_params):
     # yaml file
-    config = yaml.load(open("test_like.yaml"))
+    config = yaml.load(open("config_6HOD_zparams.yaml"))
 
     # set the HOD parameters to the posterior mean from the paper and the shifts and widths to 0
     fit_params = config['fit_params']
