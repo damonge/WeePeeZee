@@ -7,6 +7,7 @@
 
 \usepackage{jcappub}
 \usepackage{graphicx}
+\graphicspath{{Paper/}{./}}
 \usepackage{dcolumn}
 \usepackage{amssymb,amsmath,bm}
 \usepackage{color}
@@ -69,8 +70,17 @@
 
 \section{Introduction}\label{sec:intro}
 
-Yadi, yadi, yadi. Upcoming photometric galaxy suryves, yadi yadi,
-importance of 3x2point, yadi, yadi. Define $N(z)$. 
+Photometric galaxy surveys  have the potential of  being transformative in our understanding of the Universe by measuring millions and soon billions of galaxies on the sky. These catalogs can be used to constrain cosmological parameters through measurements of clustering and weak lensing as demonstrated by numerous surveys that have completed observations including  Sloan Digital Sky Survey \cite{astro-ph/0006396}, PanSTARRS \cite{2010SPIE.7733E..0EK}, Kilo-degree Survey \cite{1206.1254}, Dark Energy Survey \cite{1601.00329}, Hyper Suprime-Cam survey \cite{2012SPIE.8446E..0ZM}, and will play a crucial role in the upcoming Vera Rubin Observatory LSST Survey \cite{0912.0201}.
+
+it has been long recognized that the accuracy of photometric surveys relies on the accuracy of photometric redshift distributions and that these are likely to continue to be a dominant source of systematic uncertainty. The crucial quantity is the redshift distribution $N(z)$, which is simply the mean number density of galaxies as a function of redshift for each tomographic sample. It is known that the shape of $N(z)$ delivered by the current photometric redshift codes and subsequent calibrations is insufficient for retiring this source of systematic error completely \cite{1809.01669}. Improving photometric redshift techniques and calibrations is an area of active research \cite{2004.09542}\as{add citations}, but for the foreseable future we will need to rely on marginalization to control residual systematic errors.
+
+The traditional approach is to add nuissiance parameters that shift the best guess $N(z)$ or additionally change its width or a relative contribution from a secondary peak in $N(z)$. This usually works well, but in additional to adding potentially large number of nuissance parameters suffers from model completeness problem: how do we know that any given parameterization encompasses all possible ways in which our best-guess $N(z)$ can be wrong?
+
+In this paper we propose a new technique that performs a marginalization around all possible functional deviations from the best fit $N(z)$. The space of possible deviations in $N(z)$ is described as a Gaussian function and under some controlled approximations, the integrals can be performed analytically. This results in a simple change to the data covariance matrix with a simple explanation: directions in the space of predictions that are degenerate with changes in $N(z)$ are given large variance, which means that information in these direction is not used for inferring the parameters of interest. This then marginalizes over $N(z)$ uncertainty in a robust manner that does not add new niussance parameters.
+
+We applyt this method to the HSC data as an example and  discuss some of the advantages, limitations and possible extensions of this model. 
+
+
 
 
 \section{Theory}
@@ -149,9 +159,14 @@ If needed, one could repeat the inference at a refined fiducial model although i
 
 Note that there are two distinct approximation here. The first is that theory can validly be Taylor expanded in $\vN-\bar{\vN}$ and the second is that $T$ is model independent for models of interest. We will examine validity of both of those approximations in Section \ref{sec:hsc}.
 
-\subsection{Determination of prior matrix P}
+\subsection{Determination of prior matrix $P$}
+
+Determination of the prior matrix $P$ is where the the actual and often partially subjective prior on our knowledge of $N(z)$ enters. Note that the standard parameterizations can always be recast in this language at least in the perturbative limits. For example, a vector of derivatives $\lambda_i = dN_i/dz$ when added to $\vN$ will produce a shift in the the shape of $N_i(z)$. Therefore, adding a contribution $\sigma_{zi}^2 \lambda_i \lambda_i^T$ will allow shifts with variance $\sigma_{zi}$. Of course, when shifts become so large that the perturbative expansion breaks, the approach will work only approximately. But in this paper we are not interesting in shifts; instead we will try to build $P$ is a more systematic manner. 
+
 
 \subsubsection{Uncertainty due to estimator biases}
+We will build $P$ from three pieces. The first piece is simply the overall uncertainty stemming from the fact that the photometric redshift estimators have errors. The simplest thing is to make this covariance matrix   \ldots
+
 
 \subsubsection{Cosmic Variance in calibrator sample}
 The covariance matrix between two tomographic bins is given by:
@@ -191,7 +206,7 @@ treating each bin independently. We show the resulting correlation matrix of the
 
 \begin{figure}[ht]
 \centering  
-\includegraphics[width=1.\textwidth]{Paper/corr_CV_0.png}
+\includegraphics[width=1.\textwidth]{./corr_CV_0.png}
 \caption{Cosmic variance (CV) correlation matrix with subtracted diagonal for the first tomographic bin of the HSC data.} 
 \label{fig:CV}
 \end{figure}
@@ -225,7 +240,7 @@ The Hyper-Suprime Cam survey is an on-going photometric galaxy survey survey foc
 
 \begin{figure}[ht]
 \centering  
-\includegraphics[width=1.2\textwidth]{Paper/Tmat.png}
+\includegraphics[width=1.2\textwidth]{./Tmat.png}
 \caption{Visualization of the derivative matrix $T_{mn} = {\partial t_m}/{\partial N_n}$. \todo{Make look nicer: split into tomo bins}} 
 \label{fig:Tmat}
 \end{figure}
@@ -241,12 +256,12 @@ The Hyper-Suprime Cam survey is an on-going photometric galaxy survey survey foc
 \centering
 \begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[width=1.\linewidth]{Paper/corr_data.png}
+  \includegraphics[width=1.\linewidth]{./corr_data.png}
   \label{fig:sub1}
 \end{subfigure}%
 \begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[width=1.\linewidth]{Paper/corr_diff.png}
+  \includegraphics[width=1.\linewidth]{./corr_diff.png}
   \label{fig:sub2}
 \end{subfigure}
 \caption{Correlation matrix for the fiducial HSC dataset (\textit{left}) and difference with its marginalized version (\textit{right}).}
@@ -255,14 +270,14 @@ The Hyper-Suprime Cam survey is an on-going photometric galaxy survey survey foc
 
 \begin{figure}[ht]
 \centering  
-\includegraphics[width=1.\textwidth]{Paper/triangle_fid_marg.png}
+\includegraphics[width=1.\textwidth]{./triangle_fid_marg.png}
 \caption{Triangle plot with constraints of the 6 HOD parameters obtained using the covariance matrix from the full HSC dataset (\textit{red}) and from its marginalized version (\textit{blue}).}
 \label{fig:triangle_fid_marg}
 \end{figure}
 
 \begin{figure}[ht]
 \centering  
-\includegraphics[width=1.\textwidth]{Paper/triangle_marg_tests.png}
+\includegraphics[width=1.\textwidth]{./triangle_marg_tests.png}
 \caption{Triangle plot with constraints of the 6 HOD parameters obtained using different choices for the marginalized covariance matrix: in \textit{green} is shown the result where the diagonal noise is set to a very large value ($A_{\rm noise} = 42$); in \textit{gray} is shown the case where the marginalization is performed assuming fiducial HOD-model values which are $1\sigma$ away from their posterior mean values taken from \todo{CITE Andrina's paper}; in \textit{red} is shown the case where the smoothing has been removed ($A_{\rm smooth} = 0$); and finally in \textit{blue} is shown the fiducial case with $A_{\rm noise} = 4$ and $A_{\rm smooth} = 0.25$.}
 \label{fig:triangle_marg_tests}
 \end{figure}

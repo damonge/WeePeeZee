@@ -134,7 +134,7 @@ plt.ylabel("Cl ratio")
 plt.xlabel("l bins")
 plt.savefig("Cl_comparison.png")
 
-quit()
+#quit()
 
 # Delta Cl
 di = s_d.mean.vector - cl_theory_taylor
