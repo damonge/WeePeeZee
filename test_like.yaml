@@ -1,6 +1,7 @@
 # Comment out the probes you don't need
 # CAREFUL: yaml is super sensitive to spaces - don't use tabs
-saccfiles: ['/users/boryanah/repos/WeePeeZee/data/COADDED/power_spectra_wdpj.sacc']
+# saccfiles: ['/users/boryanah/repos/WeePeeZee/data/COADDED/power_spectra_wdpj.sacc']
+saccfiles: ['/users/boryanah/repos/WeePeeZee/data/NEWCOV_COADDED/power_spectra_wdpj.sacc']
 
 cl_params:
     fitHOD: 1
@@ -26,20 +27,20 @@ sacc_params:
 # Parameters to be fitted in MCMC
 # [mapping_index, mean, min, max, std]
 fit_params:
-    #zshift_bin0: [0, 0.0, -0.2, 0.2, 0.01]
-    #zshift_bin1: [1, 0.0, -0.2, 0.2, 0.01]
-    #zshift_bin2: [2, 0.0, -0.2, 0.2, 0.01]
-    #zshift_bin3: [3, 0.0, -0.2, 0.2, 0.01]
-    lmminp:       [0, 4., -5., 10., 0.5]
-    lmmin:        [1, 10., 0., 15., 0.5]
-    m0p:          [2, 4., -5., 10., 0.5]
-    m0:           [3, 10., 0., 15., 0.5]
-    m1p:          [4, 7., -5., 10., 0.5]
-    m1:           [5, 10., 0., 15., 0.5]
-    #zwidth_bin0: [10, 0.0, -0.2, 0.2, 0.01]
-    #zwidth_bin1: [11, 0.0, -0.2, 0.2, 0.01]
-    #zwidth_bin2: [12, 0.0, -0.2, 0.2, 0.01]
-    #zwidth_bin3: [13, 0.0, -0.2, 0.2, 0.01]
+    zshift_bin0: [0, 0.0, -0.2, 0.2, 0.01]
+    zshift_bin1: [1, 0.0, -0.2, 0.2, 0.01]
+    zshift_bin2: [2, 0.0, -0.2, 0.2, 0.01]
+    zshift_bin3: [3, 0.0, -0.2, 0.2, 0.01]
+    lmminp:       [4, 4., -5., 10., 0.5]
+    lmmin:        [5, 10., 0., 15., 0.5]
+    m0p:          [6, 4., -5., 10., 0.5]
+    m0:           [7, 10., 0., 15., 0.5]
+    m1p:          [8, 7., -5., 10., 0.5]
+    m1:           [9, 10., 0., 15., 0.5]
+    zwidth_bin0: [10, 0.0, -0.2, 0.2, 0.01]
+    zwidth_bin1: [11, 0.0, -0.2, 0.2, 0.01]
+    zwidth_bin2: [12, 0.0, -0.2, 0.2, 0.01]
+    zwidth_bin3: [13, 0.0, -0.2, 0.2, 0.01]
 
 default_params:
     has_rsd: False
