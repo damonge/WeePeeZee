@@ -204,7 +204,7 @@ for t in s_dp.tracers:
     i+=tl
 
 # Slightly improved computation using taylor expansion
-cl_theory_perturbed = get_theory(s_d,s_noi,hod_params,Z_params,HMCorrection)
+cl_theory_perturbed = get_theory(s_dp,s_noi,hod_params,Z_params,HMCorrection)
 cl_theory_taylor = cl_theory + np.dot(Tmat.T,dNz)
 
 di = s_d.mean.vector - cl_theory_perturbed
