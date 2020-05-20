@@ -49,7 +49,8 @@ def get_smooth_s_and_prior(s_data,cosmo,want_prior,A_smooth=0.25,noi_fac=4.):
 
     # obtain the mean of the 4 pz codes with their noise
     s_mean, cov_noise = get_mean_cov(s_data,N_tracers,Nz_per_tracer,noi_fac)
-    s0 = NzVec(s_mean)
+    s0 = NzVec(s_data)
+
     
     # compute the CV
     if os.path.isfile("cov_CV.npy"):
@@ -76,6 +77,7 @@ def get_smooth_s_and_prior(s_data,cosmo,want_prior,A_smooth=0.25,noi_fac=4.):
 
     # get the smoothed N(z) for all tracers
     s_smooth = np.dot(np.dot(np.linalg.inv(P0+D),P0),s0)
+    print (s0[:10],s_smooth[:10])
     tr = []
     for i in range(N_tracers):
         T = sacc.Tracer('bin_%d'%i, 'point',

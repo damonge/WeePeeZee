@@ -31,8 +31,8 @@ dir_write = "data/"+write
 lmax = [2170.58958919, 2515.39193451, 3185.36076391, 4017.39370804]
 
 # choice for noise and smoothing
-A_smooth = 0.25
-noi_fac = 4.
+A_smooth = 0.15
+noi_fac = 20.
 
 # Cosmological parameters
 # Checked cosmo_params are the same as what the MCMC chain fixes for them
@@ -82,7 +82,7 @@ if "nosmooth" in write:
     print("Getting marginalized covariance for the no-smoothing test")
     A_smooth = 0.
 
-# TEST #3
+# TEST #3s
 if "largenoise" in write:
     # Delete the CV covmat
     print("Getting marginalized covariance for the large-noise test")
@@ -102,6 +102,7 @@ def obtain_improved_cov(cov,Tmat,prior):
 def NzVec(s):
     return np.hstack([t.Nz for t in s.tracers])
 
+
 # Theory prediction
 cosmo = ccl.Cosmology(**cosmo_params)
 
@@ -111,6 +112,10 @@ HMCorrection = HaloModCorrection(cosmo, k_range=[1e-4, 1e2], nlk=256, z_range=[0
 # Load the data whose precision matrix we would like to modify
 s_d = sacc.SACC.loadFromHDF(dir_read+"/power_spectra_wdpj.sacc")
 s_noi = sacc.SACC.loadFromHDF(dir_read+"/noi_bias.sacc")
+
+# redshift array
+zar = s_d.tracers[0].z
+
 
 # Calculate the smooth s_m = (P0+D)^-1 P0 s0 and smooth prior prior_smo = P0+D
 s_m, prior_smo = get_smooth_s_and_prior(s_d,cosmo,want_prior=True,A_smooth=A_smooth,noi_fac=noi_fac)
@@ -174,6 +179,10 @@ prec_n = s_n.precision.getPrecisionMatrix()
 # Computing Cls directly from the data
 
 cl_theory = get_theory(s_d,s_noi,hod_params,Z_params,HMCorrection)
+cl_theory_s = get_theory(s_m,s_noi,hod_params,Z_params,HMCorrection)
+
+
+
 
 # xar = np.arange(len(cl_theory))
 # errv = np.sqrt(s_d.precision.getCovarianceMatrix().diagonal())
@@ -184,23 +193,72 @@ cl_theory = get_theory(s_d,s_noi,hod_params,Z_params,HMCorrection)
 
 
 di = s_d.mean.vector - cl_theory
-
 chi2o = get_chi2(di,prec_o)
 chi2n = get_chi2(di,prec_n)
-
 print ("Chi2 original model, original cov:", chi2o, dof)
 print ("Chi2 original model, new cov ", chi2n)
 
-#Lets perturb dNz, draw from prior_smo
+
+di = s_d.mean.vector - cl_theory_s
+chi2o = get_chi2(di,prec_o)
+chi2n = get_chi2(di,prec_n)
+print ("Chi2 original model, smoothed Nz, original cov:", chi2o, dof)
+print ("Chi2 original model, smoothed Nz, new cov ", chi2n)
+
+
+
+
+#Lets perturb dNz, draw from prior_cov
+prior_cov = np.linalg.inv(prior_smo)
 Nz = NzVec(s_d)
-dNz = np.random.multivariate_normal(np.zeros_like(Nz),prior_smo)
-print ("Sanity: ",np.dot(dNz,np.dot(np.linalg.inv(prior_smo),dNz)))
-NzP = Nz+dNz
+Nz_s = NzVec(s_m)
+dNz = np.random.multivariate_normal(np.zeros_like(Nz),prior_cov)
+print ("Sanity: ",np.dot(dNz,np.dot(np.linalg.inv(prior_cov),dNz)))
+#plt.errorbar(np.arange(len(Nz_s)),Nz_s, yerr=np.sqrt(prior_cov.diagonal()))
+#plt.show()
+#stop()
+
+if False:
+    NzP = Nz+dNz
+else:
+    ## let's instead implement a shift by one bin by 0.02
+    NzP = np.copy(Nz)
+    NzP [200:298] = Nz[201:299]
+    dNz = NzP-Nz
+
+print ("Sanity: ",np.dot(dNz,np.dot(np.linalg.inv(prior_cov),dNz)))
+
+
+
+
+if True:
+    fig, ax = plt.subplots(4,1, facecolor="w",
+            gridspec_kw={"hspace": 0.0},
+            figsize=(10, 6))
+    for i in range(4):
+        li = i*100
+        hi = li+100
+        ax[i].plot(zar,Nz[li:hi],'r-')
+        ax[i].plot(zar,Nz_s[li:hi],'b-')
+        ax[i].plot(zar,NzP[li:hi],'g-')
+        ax[i].set_xlim(0,2.6)
+        ax[i].set_ylabel('$N_%i (z)$'%(i+1))
+    ax[3].set_xlabel('z')
+    ax[0].plot([],[],'r-',label='original')
+    ax[0].plot([],[],'b-',label='smoothed')
+    ax[0].plot([],[],'g-',label='shifted')
+    ax[0].legend(ncol=3)
+    plt.savefig('Nz.pdf')
+        
+    plt.show()
+    
+
 s_dp = copy.copy(s_d)
 i=0
 for t in s_dp.tracers:
+    #print (t.z)
     tl = len(t.Nz)
-    t.Nz += dNz[i:i+tl]
+    t.Nz = NzP[i:i+tl]
     i+=tl
 
 # Slightly improved computation using taylor expansion
@@ -228,3 +286,30 @@ ratio_det_CVnoismo = log_det_prec-log_det_prec_CVnoismo
 ratio_det_CVnoismo = np.exp(ratio_det_CVnoismo)
 print("Ratio of determinants of original precision to CV+noise+smooth precision per dof = ", ratio_det_CVnoismo**(1./dof))
 # for the test data, the answer used to be ~1.12 and is now ~1.3 with COADD
+
+if True:
+    fig, ax = plt.subplots(4,4, facecolor="w",
+            gridspec_kw={"hspace": 0.0, "wspace":0},
+            figsize=(10, 10))
+    for i in range(4):
+        for j in range (i,4):
+            cax = ax[j,i]
+            ndx = s_d.ilrange(i,j)
+            ell = s_d.binning.binar['ls'][ndx]
+            well = ell**1.2
+            cax.plot(ell,well*cl_theory[ndx],'r-')
+            cax.plot(ell,well*cl_theory_s[ndx],'b-')
+            cax.plot(ell,well*cl_theory_perturbed[ndx],'g-')
+            cax.plot(ell,well*cl_theory_taylor[ndx],'c:')
+        
+    plt.show()
+
+
+    print (s_d.binning.binar['T1'])
+    #plt.plot(cl_theory/cl_theory)
+    #plt.plot(cl_theory_s/cl_theory)
+    #plt.plot(cl_theory_perturbed/cl_theory)
+    #plt.plot(cl_theory_taylor/cl_theory)
+    #plt.show()
+
+

@@ -42,7 +42,7 @@ default_params:
     h: 0.6736
     n_s: 0.9649
     Omega_c: 0.264
-    transfer_function: boltzmann_class
+    transfer_function: boltzmann_camb
     matter_power_spectrum: halofit
     sigm_0: 0.4
     sigm_1: 0.
