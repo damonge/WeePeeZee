@@ -31,8 +31,14 @@ dir_write = "data/"+write
 lmax = [2170.58958919, 2515.39193451, 3185.36076391, 4017.39370804]
 
 # choice for noise and smoothing
-A_smooth = 0.15
-noi_fac = 20.
+
+#noi_fac, A_smooth, pert = 4., 0.15, 'cov'
+#noi_fac, A_smooth, pert = 42., 0.1, 'cov'
+#noi_fac, A_smooth, pert = 4000., 0.03, 'cov'
+#noi_fac, A_smooth, pert = 42., 0.1, 'shiftone'
+#noi_fac, A_smooth, pert = 42., 0.0, 'shiftone'
+noi_fac, A_smooth, pert = 420., 0.0, 'shiftall'
+
 
 # Cosmological parameters
 # Checked cosmo_params are the same as what the MCMC chain fixes for them
@@ -218,21 +224,21 @@ print ("Sanity: ",np.dot(dNz,np.dot(np.linalg.inv(prior_cov),dNz)))
 #plt.show()
 #stop()
 
-pert = 'shiftone'
 
-if pert == 'cov'
+if pert == 'cov':
     NzP = Nz+dNz
-elif pert == 'shitone'
+elif pert == 'shiftone':
     ## let's instead implement a shift by one bin by 0.02
     NzP = np.copy(Nz)
     NzP [200:299] = Nz[201:300]
     dNz = NzP-Nz
-elif pert == 'shiftall'
+elif pert == 'shiftall':
     NzP = np.copy(Nz)
     for i in range (4):
-    NzP [i*100:i*100+99] = Nz[ii*100+1:i*100+100]
+        NzP [i*100:i*100+99] = Nz[i*100+1:i*100+100]
+        NzP [i*100+99]=0.0
     dNz = NzP-Nz
-except:
+else:
     raise NotImplementedError
 
     
@@ -259,7 +265,7 @@ if True:
     ax[0].plot([],[],'b-',label='smoothed')
     ax[0].plot([],[],'g-',label='shifted')
     ax[0].legend(ncol=3)
-    plt.savefig('Nz.pdf')
+    plt.savefig('fig1.png')
         
     plt.show()
     
@@ -302,6 +308,9 @@ if True:
     fig, ax = plt.subplots(4,4, facecolor="w",
             gridspec_kw={"hspace": 0.0, "wspace":0},
             figsize=(10, 10))
+    data = s_d.mean.vector
+    err = np.sqrt(cov.diagonal())
+    err2 = np.sqrt(s_n.precision.getCovarianceMatrix().diagonal())
     for i in range(4):
         for j in range (i,4):
             cax = ax[j,i]
@@ -309,10 +318,17 @@ if True:
             ell = s_d.binning.binar['ls'][ndx]
             well = ell**1.2
             cax.plot(ell,well*cl_theory[ndx],'r-')
-            cax.plot(ell,well*cl_theory_s[ndx],'b-')
-            cax.plot(ell,well*cl_theory_perturbed[ndx],'g-')
+            cax.plot(ell,well*cl_theory_s[ndx],'g-')
+            cax.plot(ell,well*cl_theory_perturbed[ndx],'b-')
             cax.plot(ell,well*cl_theory_taylor[ndx],'c:')
-        
+            cax.errorbar(ell,data[ndx]*well,yerr=err[ndx]*well,fmt='ko-')
+            #cax.errorbar(ell,data[ndx]*well,yerr=err2[ndx]*well,fmt='ko:')
+    ax[0,3].plot([],[],'r-',label='default theory')
+    ax[0,3].plot([],[],'g-',label='smooth theory')
+    ax[0,3].plot([],[],'b-',label='perturb theory')
+    ax[0,3].plot([],[],'c:',label='taylor theory')
+    ax[0,3].legend(frameon=False)
+    plt.savefig('fig2.png')
     plt.show()
 
 
