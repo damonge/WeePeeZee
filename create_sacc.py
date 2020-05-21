@@ -218,14 +218,25 @@ print ("Sanity: ",np.dot(dNz,np.dot(np.linalg.inv(prior_cov),dNz)))
 #plt.show()
 #stop()
 
-if False:
+pert = 'shiftone'
+
+if pert == 'cov'
     NzP = Nz+dNz
-else:
+elif pert == 'shitone'
     ## let's instead implement a shift by one bin by 0.02
     NzP = np.copy(Nz)
-    NzP [200:298] = Nz[201:299]
+    NzP [200:299] = Nz[201:300]
     dNz = NzP-Nz
+elif pert == 'shiftall'
+    NzP = np.copy(Nz)
+    for i in range (4):
+    NzP [i*100:i*100+99] = Nz[ii*100+1:i*100+100]
+    dNz = NzP-Nz
+except:
+    raise NotImplementedError
 
+    
+    
 print ("Sanity: ",np.dot(dNz,np.dot(np.linalg.inv(prior_cov),dNz)))
 
 
