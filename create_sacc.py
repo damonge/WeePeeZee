@@ -6,6 +6,7 @@ import pyccl as ccl
 import copy
 import shutil
 import matplotlib.pyplot as plt
+from scipy.optimize import minimize
 
 from desclss.halo_mod_corr import HaloModCorrection
 from calculate_smooth_s_and_prior import get_smooth_s_and_prior
@@ -32,12 +33,12 @@ lmax = [2170.58958919, 2515.39193451, 3185.36076391, 4017.39370804]
 
 # choice for noise and smoothing
 
-#noi_fac, A_smooth, pert = 4., 0.15, 'cov'
+noi_fac, A_smooth, pert = 4., 0.15, 'cov'
 #noi_fac, A_smooth, pert = 42., 0.1, 'cov'
 #noi_fac, A_smooth, pert = 4000., 0.03, 'cov'
 #noi_fac, A_smooth, pert = 42., 0.1, 'shiftone'
 #noi_fac, A_smooth, pert = 42., 0.0, 'shiftone'
-noi_fac, A_smooth, pert = 420., 0.0, 'shiftall'
+#noi_fac, A_smooth, pert = 420., 0.0, 'shiftall'
 
 
 # Cosmological parameters
@@ -205,6 +206,35 @@ print ("Chi2 original model, original cov:", chi2o, dof)
 print ("Chi2 original model, new cov ", chi2n)
 
 
+
+def smooth_chi2(x):
+    m1, m1p = x
+    new_hod_params = hod_params.copy()
+    new_hod_params['m1'] = m1
+    new_hod_params['m1p'] = m1p
+    if m1 > 15. or m1 < 0. or m1p > 10. or m1p < -5.:
+        return np.inf
+    cl = get_theory(s_m,s_noi,new_hod_params,Z_params,HMCorrection)
+    di = s_d.mean.vector - cl
+    # minimizing wrt original cov
+    chi2 = get_chi2(di,prec_o)
+    return chi2
+
+want_mini = 1
+if want_mini:
+    # do the m1, m1p minimization
+    x0 = [13.,1.]
+    xtol = 1.e-3
+    res = minimize(smooth_chi2, x0, method='powell',\
+                   options={'xtol': xtol, 'disp': True})
+    m1, m1p = res.x
+
+    print("m1, m1p = ",m1,m1p)
+    new_hod_params = hod_params.copy()
+    new_hod_params['m1'] = m1
+    new_hod_params['m1p'] = m1p
+    cl_theory_s = get_theory(s_m,s_noi,new_hod_params,Z_params,HMCorrection)
+    
 di = s_d.mean.vector - cl_theory_s
 chi2o = get_chi2(di,prec_o)
 chi2n = get_chi2(di,prec_n)
