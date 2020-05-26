@@ -33,7 +33,8 @@ lmax = [2170.58958919, 2515.39193451, 3185.36076391, 4017.39370804]
 
 # choice for noise and smoothing
 
-noi_fac, A_smooth, pert = 4., 0.15, 'cov'
+noi_fac, z_smooth, pert, upsample, cov_cv = 10, 0.02, 'cov', 1, False
+
 #noi_fac, A_smooth, pert = 42., 0.1, 'cov'
 #noi_fac, A_smooth, pert = 4000., 0.03, 'cov'
 #noi_fac, A_smooth, pert = 42., 0.1, 'shiftone'
@@ -125,11 +126,13 @@ zar = s_d.tracers[0].z
 
 
 # Calculate the smooth s_m = (P0+D)^-1 P0 s0 and smooth prior prior_smo = P0+D
-s_m, prior_smo = get_smooth_s_and_prior(s_d,cosmo,want_prior=True,A_smooth=A_smooth,noi_fac=noi_fac)
+s_m, prior_smo = get_smooth_s_and_prior(s_d,cosmo,z_smooth=z_smooth,noi_fac=noi_fac,
+                                        upsample = upsample, cov_cv = cov_cv)
+zaru = s_m.tracers[0].z
 
 # Number of tracers and z-bins
-Nz_per_tracer = len(s_d.tracers[0].z)
-N_tracers = len(s_d.tracers)
+Nz_per_tracer = len(s_m.tracers[0].z)
+N_tracers = len(s_m.tracers)
 Nz_total = N_tracers*Nz_per_tracer
 
 # Applying l-cuts; remove for MCMC run
@@ -139,13 +142,14 @@ N_data = len(s_d.mean.vector)
 cov = s_d.precision.getCovarianceMatrix()
 prec = np.linalg.inv(cov)
 
-# Tmat computation
-if os.path.isfile("Tmat_"+read+".npy"):
+# Tmat computations
+Tmatfn = "Tmat_%s_%i.npy"%(read,upsample)
+if os.path.isfile(Tmatfn):
     print ("Loading cached Tmat")
-    Tmat = np.load("Tmat_"+read+".npy")
+    Tmat = np.load(Tmatfn)
 else:
-    Tmat = obtain_Tmat(s_d,s_noi,hod_params,Z_params,HMCorrection)
-    np.save("Tmat_"+read+".npy",Tmat)
+    Tmat = obtain_Tmat(s_m,s_noi,hod_params,Z_params,HMCorrection)
+    np.save(Tmatfn,Tmat)
 
 # Obtain the new covariance matrix
 cov_CVnoismo = obtain_improved_cov(cov,Tmat,prior_smo)
@@ -220,15 +224,15 @@ def smooth_chi2(x):
     chi2 = get_chi2(di,prec_o)
     return chi2
 
-want_mini = 1
+want_mini = True
 if want_mini:
     # do the m1, m1p minimization
-    x0 = [13.,1.]
-    xtol = 1.e-3
+    x0 = [13.05,0.8]
+    xtol = 1.e-1
     res = minimize(smooth_chi2, x0, method='powell',\
                    options={'xtol': xtol, 'disp': True})
     m1, m1p = res.x
-
+    #m1, m1p = 13.050646236741628, 0.7870067977533213
     print("m1, m1p = ",m1,m1p)
     new_hod_params = hod_params.copy()
     new_hod_params['m1'] = m1
@@ -248,35 +252,30 @@ print ("Chi2 original model, smoothed Nz, new cov ", chi2n)
 prior_cov = np.linalg.inv(prior_smo)
 Nz = NzVec(s_d)
 Nz_s = NzVec(s_m)
-dNz = np.random.multivariate_normal(np.zeros_like(Nz),prior_cov)
-print ("Sanity: ",np.dot(dNz,np.dot(np.linalg.inv(prior_cov),dNz)))
-#plt.errorbar(np.arange(len(Nz_s)),Nz_s, yerr=np.sqrt(prior_cov.diagonal()))
-#plt.show()
-#stop()
-
 
 if pert == 'cov':
-    NzP = Nz+dNz
+    dNz = 1*np.random.multivariate_normal(np.zeros_like(Nz_s),prior_cov)
+    NzP = Nz_s+dNz
 elif pert == 'shiftone':
     ## let's instead implement a shift by one bin by 0.02
     NzP = np.copy(Nz)
-    NzP [200:299] = Nz[201:300]
-    dNz = NzP-Nz
+    NzP [200*upsample:300*upsample-1] = Nz[200*upsample+1:300*upsample]
+    dNz = NzP-Nz_s
 elif pert == 'shiftall':
     NzP = np.copy(Nz)
     for i in range (4):
-        NzP [i*100:i*100+99] = Nz[i*100+1:i*100+100]
-        NzP [i*100+99]=0.0
-    dNz = NzP-Nz
+        NzP [i*100*upsample:(i+1)*100*upsample-1] = Nz[i*100*upsample+1:(i+1)*100*upsample]
+        NzP [(i+1)*100*upsample-1]=0.0
+    dNz = NzP-Nz_s
 else:
     raise NotImplementedError
 
     
-    
 print ("Sanity: ",np.dot(dNz,np.dot(np.linalg.inv(prior_cov),dNz)))
 
 
 
+    
 
 if True:
     fig, ax = plt.subplots(4,1, facecolor="w",
@@ -286,8 +285,8 @@ if True:
         li = i*100
         hi = li+100
         ax[i].plot(zar,Nz[li:hi],'r-')
-        ax[i].plot(zar,Nz_s[li:hi],'b-')
-        ax[i].plot(zar,NzP[li:hi],'g-')
+        ax[i].plot(zaru,Nz_s[li*upsample:hi*upsample],'b-')
+        ax[i].plot(zaru,NzP[li*upsample:hi*upsample],'g-')
         ax[i].set_xlim(0,2.6)
         ax[i].set_ylabel('$N_%i (z)$'%(i+1))
     ax[3].set_xlabel('z')
@@ -300,7 +299,7 @@ if True:
     plt.show()
     
 
-s_dp = copy.copy(s_d)
+s_dp = copy.copy(s_m)
 i=0
 for t in s_dp.tracers:
     #print (t.z)
@@ -309,20 +308,19 @@ for t in s_dp.tracers:
     i+=tl
 
 # Slightly improved computation using taylor expansion
-cl_theory_perturbed = get_theory(s_dp,s_noi,hod_params,Z_params,HMCorrection)
-cl_theory_taylor = cl_theory + np.dot(Tmat.T,dNz)
+cl_theory_perturbed = get_theory(s_dp,s_noi,new_hod_params,Z_params,HMCorrection)
+cl_theory_taylor = cl_theory_s + np.dot(Tmat.T,dNz)
 
-di = s_d.mean.vector - cl_theory_perturbed
+di = s_n.mean.vector - cl_theory_perturbed
 chi2po = get_chi2(di,prec_o)
 chi2pn = get_chi2(di,prec_n)
-print ("Chi2 perturbed model, original cov:", chi2po, dof)
-print ("Chi2 perturbed model, new cov ", chi2pn)
-
-di = s_d.mean.vector - cl_theory_taylor
+print ("Chi2 perturbed model smooth, original cov:", chi2po, dof)
+print ("Chi2 perturbed model smooth Nz, new cov ", chi2pn)
+di = s_n.mean.vector - cl_theory_taylor
 chi2to = get_chi2(di,prec_o)
 chi2tn = get_chi2(di,prec_n)
-print ("Chi2 taylor model, original cov:", chi2to, dof)
-print ("Chi2 taylor model, new cov ", chi2tn)
+print ("Chi2 taylor model smooth nz, original cov:", chi2to, dof)
+print ("Chi2 taylor model smooth , new cov ", chi2tn)
 
 
 

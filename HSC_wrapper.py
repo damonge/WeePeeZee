@@ -98,6 +98,7 @@ def obtain_Tmat(s_d,s_noi,hod_params,z_params,HMCorr,want_Lcuts=False):
 
     # Number of tracers and z-bins
     Nztr = len(s_d.tracers[0].z)
+    print (Nztr)
     Ntomo = len(s_d.tracers)
     Nz = Ntomo*Nztr
     Nd = len(s_d.mean.vector)
