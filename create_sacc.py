@@ -231,7 +231,7 @@ if want_mini:
     res = minimize(smooth_chi2, x0, method='powell',\
                    options={'xtol': xtol, 'disp': True})
     m1, m1p = res.x
-    #m1, m1p = 13.050646236741628, 0.7870067977533213
+    #m1, m1p =  13.010594780047219 1.0328111847536008
     print("m1, m1p = ",m1,m1p)
     new_hod_params = hod_params.copy()
     new_hod_params['m1'] = m1
