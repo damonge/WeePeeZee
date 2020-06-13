@@ -3,12 +3,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 from compute_CV_cov import compute_covmat_cv
-from smoothness import obtain_smoothing_D
+from smoothness import obtain_generalized_D
 from scipy.ndimage import gaussian_filter
 from scipy.interpolate import interp1d
 import pyccl as ccl
+from scipy import interpolate
 
-def get_mean_cov(s_data,Ntr,Nztr,noi_fac, z_smooth,upsample):
+def get_mean_cov(s_data,Ntr,Nztr,noi_fac,upsample):
     # photo-z codes
 
     pz_codes = ['nz_demp', 'nz_ephor', 'nz_ephor_ab', 'nz_frankenz']
@@ -28,9 +29,6 @@ def get_mean_cov(s_data,Ntr,Nztr,noi_fac, z_smooth,upsample):
             newnzs = np.zeros(myNztr)
             w=np.where(newzs<=maxz)
             newnzs[w] = [interp1d(zs,nzs, kind='cubic')(newzs[w])]
-            #plt.plot(zs,nzs[0],'bo-')
-            #plt.plot(newzs, newnzs,'rx-')
-            #plt.show()
             nzs = [newnzs]
         else:
             newzs = zs
@@ -47,22 +45,17 @@ def get_mean_cov(s_data,Ntr,Nztr,noi_fac, z_smooth,upsample):
         nzs = np.array(nzs)
 
         # get mean and variance
-        #nz_mean = nzs[0] # to have original
         nz_mean = np.mean(nzs, axis=0)
         nz_var = np.var(nzs,axis=0)
-        nz_var = gaussian_filter (nz_var, 2.5 * upsample)
-        
-        if z_smooth>0:
-            sig = (zs[1]-zs[0])/z_smooth
-            corr = np.fromfunction (lambda i,j:np.exp(-(i-j)**2/(2*sig**2)),(myNztr,myNztr))
-        else:
-            corr = np.eye(Nztr)
-
-        sqrtnz_var=np.sqrt(nz_var)
-        cov = noi_fac*np.outer(sqrtnz_var,sqrtnz_var)*corr
-        # plt.imshow(cov)
-        # plt.colorbar()
-        # plt.show()
+        # TODO: is this necessary? 
+        nz_var = gaussian_filter(nz_var, 2.5*upsample)
+        # TODO: is this correct?
+        # used to be
+        #corr = np.eye(Nztr)
+        #sqrtnz_var = np.sqrt(nz_var)
+        #cov = noi_fac*np.outer(sqrtnz_var,sqrtnz_var)*corr
+        # I think it should be 
+        cov = noi_fac*np.diag(nz_var)
         cov_all[i*myNztr:(i+1)*myNztr,i*myNztr:(i+1)*myNztr] = cov
         
         # store new tracers
@@ -75,22 +68,18 @@ def get_mean_cov(s_data,Ntr,Nztr,noi_fac, z_smooth,upsample):
 def NzVec(s):
     return np.hstack([t.Nz for t in s.tracers])
 
-def get_smooth_s_and_prior(s_data,cosmo,z_smooth=0.02,noi_fac=4., upsample=1, cov_cv=False):
+def get_smooth_s_and_prior(s_data,cosmo,noi_fac=4.,A_smooth=1.,dz_thr=0.04,upsample=1,cov_cv=True):
     # number of tracers and bins
     Nz_per_tracer = len(s_data.tracers[0].z)
     N_tracers = len(s_data.tracers)
     Nz_total = N_tracers*Nz_per_tracer
-    zs = s_data.tracers[0].z
+    zs_data = s_data.tracers[0].z
 
     # obtain the mean of the 4 pz codes with their noise
-    s_mean, cov_noise = get_mean_cov(s_data,N_tracers,Nz_per_tracer,noi_fac, z_smooth, upsample)
-    zs =s_mean.tracers[0].z
+    s_mean, cov_noise = get_mean_cov(s_data,N_tracers,Nz_per_tracer,noi_fac,upsample)
+    zs_mean = s_mean.tracers[0].z
     s0 = NzVec(s_mean)
-    Nz_per_tracer*=upsample
-    Nz_total*=upsample
-    
-    
-    
+
     if cov_cv:
         # compute the CV
         covfn = "cov_CV_%i.npy"%(upsample)
@@ -99,37 +88,50 @@ def get_smooth_s_and_prior(s_data,cosmo,z_smooth=0.02,noi_fac=4., upsample=1, co
             cov_CV = np.load(covfn)
         else:
             # compute cv covmat
-            cov_CV = np.zeros((Nz_total,Nz_total))
+            cov_CV = np.zeros((Nz_total*upsample,Nz_total*upsample))
             for i in range(N_tracers):
+                print("Tracer = %i out of %i"%(i,N_tracers-1))
                 # cosmic variance covmat for each tracer
-                cov_CV_per_tracer = compute_covmat_cv(cosmo,s_mean.tracers[i].z,s_mean.tracers[i].Nz)
-                cov_CV[i*Nz_per_tracer:(i+1)*Nz_per_tracer,i*Nz_per_tracer:(i+1)*Nz_per_tracer] = cov_CV_per_tracer
+                cov_CV_per_tracer = compute_covmat_cv(cosmo,s_data.tracers[i].z,s_data.tracers[i].Nz)
+                
+                if upsample > 1:
+                    cov_CV_up_per_tracer = np.zeros((len(zs_mean),len(zs_mean)))
+                    for row in range(Nz_per_tracer):
+                        fun = interpolate.interp1d(zs_data,cov_CV_per_tracer[row,:],fill_value="extrapolate")
+                        cov_CV_up_per_tracer[row,:] = fun(zs_mean)
+
+                    for col in range(Nz_per_tracer*upsample):
+                        fun = interpolate.interp1d(zs_data,cov_CV_up_per_tracer[:len(zs_data),col],fill_value="extrapolate")
+                        cov_CV_up_per_tracer[:,col] = fun(zs_mean)
+                        
+                    cov_CV[i*len(zs_mean):(i+1)*len(zs_mean),i*len(zs_mean):(i+1)*len(zs_mean)] = cov_CV_up_per_tracer
+                else:
+                    cov_CV[i*len(zs_mean):(i+1)*len(zs_mean),i*len(zs_mean):(i+1)*len(zs_mean)] = cov_CV_per_tracer
             np.save(covfn,cov_CV)
     else:
         cov_CV = 0
-    # impose smoothness of first and second derivative
-    #D = A_smooth**2*obtain_smoothing_D(s_mean,first=True,second=True)
+    
+    # impose smoothness 
+    D = obtain_generalized_D(s_mean,A_smooth,dz_thr)
 
     # compute total covariance of noise
     cov_total = cov_noise +  cov_CV
-    #print (cov_total[:3,:3], cov_CV[:3,:3])
     # compute precision with and without the smoothing matrix D
-    P = np.linalg.inv(cov_total)
-    #P = P0+D
+    P0 = np.linalg.inv(cov_total)
+    P = P0+D
 
     # get the smoothed N(z) for all tracers
-    #s_smooth = np.dot(np.dot(np.linalg.inv(P0+D),P0),s0)
-    s_smooth = s0
+    s_smooth = np.dot(np.dot(np.linalg.inv(P0+D),P0),s0)
+    #s_smooth = s0
     
     tr = []
     for i in range(N_tracers):
         T = sacc.Tracer('bin_%d'%i, 'point',
-                        zs, s_smooth[i*Nz_per_tracer:(i+1)*Nz_per_tracer], exp_sample='HSC_DESC')
+                        zs_mean, s_smooth[i*Nz_per_tracer*upsample:(i+1)*Nz_per_tracer*upsample], exp_sample='HSC_DESC')
         tr.append(T)
     s = sacc.SACC(tr, s_data.binning, s_data.mean)
 
-    # return smooth s (and smooth prior)
-
+    # return smooth s and smoothing prior
     return s,P
 
 

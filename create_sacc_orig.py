@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from scipy.optimize import minimize
 
 from desclss.halo_mod_corr import HaloModCorrection
-from calculate_smooth_s_and_prior import get_smooth_s_and_prior
+from calculate_smooth_s_and_prior_orig import get_smooth_s_and_prior
 from HSC_wrapper import obtain_Tmat
 from HSC_wrapper import get_theory
 
@@ -23,7 +23,7 @@ try:
     read = sys.argv[1]
     write = sys.argv[2]
 except:
-    print("Usage of this script is: python create_sacc.py <read_dir> <write_dir>")
+    print("Usage of this script is: python create_sacc_orig.py <read_dir> <write_dir>")
 dir_read = "data/"+read
 dir_write = "data/"+write
 

@@ -32,8 +32,7 @@ dir_write = "data/"+write
 lmax = [2170.58958919, 2515.39193451, 3185.36076391, 4017.39370804]
 
 # choice for noise and smoothing
-
-noi_fac, z_smooth, pert, upsample, cov_cv = 10, 0.02, 'cov', 1, False
+noi_fac, dz_thr, pert, A_smooth, upsample, cov_cv = 42., 0.04, 'cov', 1., 3, True
 
 #noi_fac, A_smooth, pert = 42., 0.1, 'cov'
 #noi_fac, A_smooth, pert = 4000., 0.03, 'cov'
@@ -126,8 +125,8 @@ zar = s_d.tracers[0].z
 
 
 # Calculate the smooth s_m = (P0+D)^-1 P0 s0 and smooth prior prior_smo = P0+D
-s_m, prior_smo = get_smooth_s_and_prior(s_d,cosmo,z_smooth=z_smooth,noi_fac=noi_fac,
-                                        upsample = upsample, cov_cv = cov_cv)
+s_m, prior_smo = get_smooth_s_and_prior(s_d,cosmo,noi_fac=noi_fac,A_smooth=A_smooth,
+                                        dz_thr=dz_thr,upsample=upsample,cov_cv=cov_cv)
 zaru = s_m.tracers[0].z
 
 # Number of tracers and z-bins
@@ -359,8 +358,6 @@ if True:
     plt.savefig('fig2.png')
     plt.show()
 
-
-    print (s_d.binning.binar['T1'])
     #plt.plot(cl_theory/cl_theory)
     #plt.plot(cl_theory_s/cl_theory)
     #plt.plot(cl_theory_perturbed/cl_theory)

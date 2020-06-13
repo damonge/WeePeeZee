@@ -139,9 +139,12 @@ if test_Tmat:
         #print(i1,i2,_,ells_binned,ndx)
         ax = axs[(plot_no-1)//ncols,(plot_no-1)%ncols]
         plt.subplot(nrows,ncols,plot_no)
-        plt.plot(ells_binned,cl_ini,'black',lw=3.,label='Initial')
-        plt.plot(ells_binned,cl_tay,'dodgerblue',lw=2.,label='Taylor')
-        plt.plot(ells_binned,cl_per,'purple',lw=2.,label='Perturbed')
+        #plt.plot(ells_binned,cl_ini,'black',lw=3.,label='Initial')
+        plt.plot(ells_binned,np.ones(len(cl_ini)),'black',ls='--',lw=3.,label='Initial')
+        #plt.plot(ells_binned,cl_tay,'dodgerblue',lw=2.,label='Taylor')
+        plt.plot(ells_binned,cl_tay/cl_ini,'dodgerblue',lw=2.,label='Taylor')
+        #plt.plot(ells_binned,cl_per,'purple',lw=2.,label='Perturbed')
+        plt.plot(ells_binned,cl_per/cl_ini,'purple',lw=2.,label='Perturbed')
         if plot_no == 1: plt.legend()
 
         if plot_no >= ncomb-ncols+1:
@@ -149,7 +152,7 @@ if test_Tmat:
         if plot_no%ncols == 1:
             plt.ylabel(r"$C_\ell$")
         plt.text(0.1, 0.05,'('+str(i1)+','+str(i2)+')',ha='center',va='center',transform=ax.transAxes)
-        plt.yscale('log')
+        #plt.yscale('log')
         plt.xscale('log')
     plt.savefig("Cl_comparison.png")
     plt.close()
