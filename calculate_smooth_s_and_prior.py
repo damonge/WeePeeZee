@@ -11,7 +11,6 @@ from scipy import interpolate
 
 def get_mean_cov(s_data,Ntr,Nztr,noi_fac,upsample):
     # photo-z codes
-
     pz_codes = ['nz_demp', 'nz_ephor', 'nz_ephor_ab', 'nz_frankenz']
 
     # store new tracers and noise covariance
@@ -27,7 +26,7 @@ def get_mean_cov(s_data,Ntr,Nztr,noi_fac,upsample):
             minz,maxz= zs[0],zs[-1]
             newzs = zs[0] + np.arange(myNztr) * (maxz-minz)/(Nztr-1)/upsample
             newnzs = np.zeros(myNztr)
-            w=np.where(newzs<=maxz)
+            w = np.where(newzs<=maxz)
             newnzs[w] = [interp1d(zs,nzs, kind='cubic')(newzs[w])]
             nzs = [newnzs]
         else:
@@ -45,7 +44,10 @@ def get_mean_cov(s_data,Ntr,Nztr,noi_fac,upsample):
         nzs = np.array(nzs)
 
         # get mean and variance
-        nz_mean = np.mean(nzs, axis=0)
+        #nz_mean = np.mean(nzs, axis=0)
+        # TESTING
+        nz_mean = np.zeros(myNztr)
+        nz_mean[w] = interp1d(zs,s_data.tracers[i].Nz,kind='cubic')(newzs[w])
         nz_var = np.var(nzs,axis=0)
         # TODO: is this necessary? 
         nz_var = gaussian_filter(nz_var, 2.5*upsample)
@@ -147,25 +149,28 @@ def main():
     
     # Theory prediction
     cosmo = ccl.Cosmology(**cosmo_params)
-
-    s_d = sacc.SACC.loadFromHDF("data/COADDED/power_spectra_wdpj.sacc")
-    s_sm, prior_sm = get_smooth_s_and_prior(s_d,cosmo,want_prior=True,A_smooth=0.25,noi_fac=4.)
+    upsample = 3
+    s_d = sacc.SACC.loadFromHDF("data/NEWCOV_COADDED/power_spectra_wdpj.sacc")
+    s_sm, prior_sm = get_smooth_s_and_prior(s_d,cosmo,noi_fac=1.,A_smooth=1.,upsample=upsample)
 
     Nz_per_tracer = len(s_d.tracers[0].z)
     N_tracers = len(s_d.tracers)
     Nz_total = N_tracers*Nz_per_tracer
-    zs = s_d.tracers[0].z
-
+    zs_d = s_d.tracers[0].z
+    zs_sm = s_sm.tracers[0].z
     error = np.sqrt(np.diag(np.linalg.inv(prior_sm)))
     
     # Plotting
     for i in range(N_tracers):
-        plt.figure(figsize=(12,8))
-        zs = s_d.tracers[i].z
+        plt.figure(figsize=(12,4))
         for pn in pz_codes:
-            n = s_d.tracers[i].extra_cols[pn]
-            plt.plot(zs,n,'--',lw=1.5,label=pn)
-        plt.errorbar(zs,s_sm.tracers[i].Nz,yerr=error[i*Nz_per_tracer:(i+1)*Nz_per_tracer],lw=2.,fmt='',capsize=2.,errorevery=3)
+            n_d = s_d.tracers[i].extra_cols[pn]
+            plt.plot(zs_d,n_d,'--',lw=1.5,label=pn)
+        n_d = s_d.tracers[i].Nz
+        plt.plot(zs_d,n_d,'-',lw=1.5,label='HSC')
+        plt.errorbar(zs_sm,s_sm.tracers[i].Nz,yerr=error[i*len(zs_sm):(i+1)*len(zs_sm)],lw=2.,fmt='',capsize=2.,errorevery=5)
         plt.legend()
+        plt.xlim([0.,2.5])
         plt.savefig("Nz_"+str(i)+".png")
         plt.close()
+
