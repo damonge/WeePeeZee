@@ -38,3 +38,36 @@ def obtain_smoothing_D(sacc,first,second):
 
     D = D1all+D2all
     return D
+
+def obtain_generalized_D(sacc,A_smooth,dz_thr):
+    N_tracers=len(sacc.tracers) # num tracers
+    N_zs=len(sacc.tracers[0].z) # zbins per tracer
+    N_total = N_tracers*N_zs # total number of samples
+    delta_z = sacc.tracers[0].z[1]-sacc.tracers[0].z[0] # distance between the z samples
+    
+    
+    # construct smoothing prior for one tracer
+    D = np.zeros((N_zs, N_zs))
+    k_arr = np.arange(N_zs)
+    p_k_arr = A_smooth*np.exp(-0.5*(k_arr*delta_z/dz_thr)**2)
+    mat_k = np.zeros((N_zs, N_zs))
+    v_i_k = np.zeros(N_zs)
+    # TODO: make faster; e.g. make v_i_k into a 2d vector and mat_k into a 3d matrix 
+    for k in range(N_zs):
+        p_k = p_k_arr[k]
+        mat_k *= 0.
+        for i in range(N_zs):
+            v_i_k *= 0.
+            if i+k < N_zs:
+                v_i_k[i+k] += 1
+                v_i_k[i] += -1
+            mat_k += np.outer(v_i_k, v_i_k)
+        D += p_k*mat_k
+
+    # smoothing prior for all tracers
+    D_all = np.zeros((N_total, N_total))
+    for i in range(N_tracers):
+        D_all[i*N_zs:(i+1)*N_zs,i*N_zs:(i+1)*N_zs] = D[:,:]
+
+    return D_all
+

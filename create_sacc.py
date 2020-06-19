@@ -32,8 +32,9 @@ dir_write = "data/"+write
 lmax = [2170.58958919, 2515.39193451, 3185.36076391, 4017.39370804]
 
 # choice for noise and smoothing
-
-noi_fac, z_smooth, pert, upsample, cov_cv = 10, 0.02, 'cov', 1, False
+#noi_fac, dz_thr, pert, A_smooth, upsample, cov_cv = 42., 0.04, 'cov', 1., 3, True
+#noi_fac, dz_thr, pert, A_smooth, upsample, cov_cv = 4., 0.04, 'cov', 1., 3, True
+noi_fac, dz_thr, pert, A_smooth, upsample, cov_cv = 4., 0.06, 'cov', 1., 3, True
 
 #noi_fac, A_smooth, pert = 42., 0.1, 'cov'
 #noi_fac, A_smooth, pert = 4000., 0.03, 'cov'
@@ -126,8 +127,8 @@ zar = s_d.tracers[0].z
 
 
 # Calculate the smooth s_m = (P0+D)^-1 P0 s0 and smooth prior prior_smo = P0+D
-s_m, prior_smo = get_smooth_s_and_prior(s_d,cosmo,z_smooth=z_smooth,noi_fac=noi_fac,
-                                        upsample = upsample, cov_cv = cov_cv)
+s_m, prior_smo = get_smooth_s_and_prior(s_d,cosmo,noi_fac=noi_fac,A_smooth=A_smooth,
+                                        dz_thr=dz_thr,upsample=upsample,cov_cv=cov_cv)
 zaru = s_m.tracers[0].z
 
 # Number of tracers and z-bins
@@ -210,7 +211,6 @@ print ("Chi2 original model, original cov:", chi2o, dof)
 print ("Chi2 original model, new cov ", chi2n)
 
 
-
 def smooth_chi2(x):
     m1, m1p = x
     new_hod_params = hod_params.copy()
@@ -224,7 +224,7 @@ def smooth_chi2(x):
     chi2 = get_chi2(di,prec_o)
     return chi2
 
-want_mini = True
+want_mini = 1
 if want_mini:
     # do the m1, m1p minimization
     x0 = [13.05,0.8]
@@ -232,7 +232,7 @@ if want_mini:
     res = minimize(smooth_chi2, x0, method='powell',\
                    options={'xtol': xtol, 'disp': True})
     m1, m1p = res.x
-    #m1, m1p = 13.050646236741628, 0.7870067977533213
+    #m1, m1p = 13.041574051253585, 0.7820088517924304
     print("m1, m1p = ",m1,m1p)
     new_hod_params = hod_params.copy()
     new_hod_params['m1'] = m1
@@ -254,7 +254,7 @@ Nz = NzVec(s_d)
 Nz_s = NzVec(s_m)
 
 if pert == 'cov':
-    dNz = 1*np.random.multivariate_normal(np.zeros_like(Nz_s),prior_cov)
+    dNz = .6*np.random.multivariate_normal(np.zeros_like(Nz_s),prior_cov)
     NzP = Nz_s+dNz
 elif pert == 'shiftone':
     ## let's instead implement a shift by one bin by 0.02
@@ -359,8 +359,6 @@ if True:
     plt.savefig('fig2.png')
     plt.show()
 
-
-    print (s_d.binning.binar['T1'])
     #plt.plot(cl_theory/cl_theory)
     #plt.plot(cl_theory_s/cl_theory)
     #plt.plot(cl_theory_perturbed/cl_theory)
