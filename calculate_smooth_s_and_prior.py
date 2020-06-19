@@ -9,6 +9,7 @@ from scipy.interpolate import interp1d
 import pyccl as ccl
 
 def get_mean_cov(s_data,Ntr,Nztr,noi_fac, z_smooth,upsample):
+    ## THIS IMPLEMENTS UPSAMPLING + SECTION 2.2.1
     # photo-z codes
 
     pz_codes = ['nz_demp', 'nz_ephor', 'nz_ephor_ab', 'nz_frankenz']
