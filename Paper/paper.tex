@@ -368,6 +368,26 @@ Ratio of determinants of original precision to CV+noise+smooth precision per dof
 \label{fig:Cls}
 \end{figure}
 
+\begin{center}
+ \begin{tabular}{c | c c c} 
+ \hline\hline
+ Model & HSC covariance & Marginalized covariance \\ [0.5ex] 
+ \hline
+ Original $N(z)$ evaluated at $C_\ell$ & 98.97 & 88.97 \\ 
+
+ Smoothed $N(z)$ evaluated at $C_\ell$ & 91.33 & 86.44 \\
+
+ Perturbed $N(z)$ and evaluated at $C_\ell'$ & 99.78 & 89.57 \\
+
+ Perturbed $N(z)$ and taylor-expanded at $C_\ell'$ & 100.62 & 89.64 \\
+ 
+ \hline
+ \hline
+\end{tabular}
+\end{center}
+\caption{m1, m1p =  13.049694172079105 0.787090825781223
+Ratio of determinants of original precision to CV+noise+smooth precision per dof =  1.152427786684794}
+
 \begin{itemize}
   \item Plot showing $T$
   \item Plot showing exact $C_\ell$ vs linear prediction. \todo{Make your plots into subplots; verify the Tmatrix}
