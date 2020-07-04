@@ -182,7 +182,7 @@
       \subsubsection{$N(z)$ uncertainties}\label{sssec:theory.prior.cv}
         \begin{figure}[ht]
           \centering  
-          \includegraphics[width=1.\textwidth]{./corr_CV_0.png}
+          \includegraphics[width=1.\textwidth]{./corr_CV_0}
           \caption{Correlation matrix associated to the cosmic-variance contribution to the total $N(z)$ covariance for the first tomographic bin of the HSC data. \todo{Can we make these plots pdfs instead?}}\label{fig:CV}
         \end{figure}
         The analysis presented in Section \todo{add ref} will make use of a measured redshift distribution estimated from the COSMOS 30-band catalog \todo{add ref}, as was done in \todo{add cite}. The main sources of uncertainty for this measurement are cosmic variance in the COSMOS field, shot noise and additional uncertainty in the photometric redshifts used to assign galaxies to different bins. Here we will associate each of this sources to a separate covariance that will be added in quadrature to form the final ${\sf C}_N$.
@@ -311,14 +311,14 @@ The Hyper-Suprime Cam survey is an on-going photometric galaxy survey survey foc
 
 \begin{figure}[ht]
 \centering  
-\includegraphics[width=1.2\textwidth]{./Tmat.png}
+\includegraphics[width=1.2\textwidth]{./Tmat}
 \caption{Visualization of the derivative matrix $T_{mn} = {\partial t_m}/{\partial N_n}$. \todo{Make look nicer: split into tomo bins}} 
 \label{fig:Tmat}
 \end{figure}
 
 \begin{figure}[ht]
 \centering  
-\includegraphics[width=1.2\textwidth]{./Nzs.png}
+\includegraphics[width=1.2\textwidth]{./Nzs}
 \caption{Photometric redshift
 distributions $N(z)$
 of the four tomographic HSC bins.
@@ -336,7 +336,7 @@ prior described in Section TODO: Section}
 
 \begin{figure}[ht]
 \centering  
-\includegraphics[width=1.2\textwidth]{./Cls.png}
+\includegraphics[width=1.2\textwidth]{./Cls}
 \caption{Galaxy power spectrum, $C_\ell^{gg}$, between the four
 tomographic bins. The \textit{black} curves show the HSC-measured
 power spectrum and error bars, while the
@@ -379,12 +379,12 @@ Ratio of determinants of original precision to CV+noise+smooth precision per dof
 \centering
 \begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[width=1.\linewidth]{./corr_data.png}
+  \includegraphics[width=1.\linewidth]{./corr_data}
   \label{fig:sub1}
 \end{subfigure}%
 \begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[width=1.\linewidth]{./corr_diff.png}
+  \includegraphics[width=1.\linewidth]{./corr_diff}
   \label{fig:sub2}
 \end{subfigure}
 \caption{Correlation matrix for the fiducial HSC dataset (\textit{left}) and difference with its marginalized version (\textit{right}).}
@@ -393,21 +393,21 @@ Ratio of determinants of original precision to CV+noise+smooth precision per dof
 
 \begin{figure}[ht]
 \centering  
-\includegraphics[width=1.\textwidth]{./triangle_fid_marg.png}
+\includegraphics[width=1.\textwidth]{./triangle_fid_marg}
 \caption{Triangle plot with constraints of the 6 HOD parameters obtained using the covariance matrix from the full HSC dataset (\textit{red}) and from its marginalized version (\textit{blue}).}
 \label{fig:triangle_fid_marg}
 \end{figure}
 
 \begin{figure}[ht]
 \centering  
-\includegraphics[width=1.\textwidth]{./triangle_marg_tests.png}
+\includegraphics[width=1.\textwidth]{./triangle_marg_tests}
 \caption{Triangle plot with constraints of the 6 HOD parameters obtained using different choices for the marginalized covariance matrix: in \textit{green} is shown the result where the diagonal noise is set to a very large value ($A_{\rm noise} = 42$); in \textit{gray} is shown the case where the marginalization is performed assuming fiducial HOD-model values which are $1\sigma$ away from their posterior mean values taken from \todo{CITE Andrina's paper}; in \textit{red} is shown the case where the smoothing has been removed ($A_{\rm smooth} = 0$); and finally in \textit{blue} is shown the fiducial case with $A_{\rm noise} = 4$ and $A_{\rm smooth} = 0.25$.}
 \label{fig:triangle_marg_tests}
 \end{figure}
 
 \begin{figure}[ht]
 \centering  
-\includegraphics[width=1.\textwidth]{./importance_noburn.png}
+\includegraphics[width=1.\textwidth]{./importance_noburn}
 \caption{Same as Fig.
 \ref{fig:triangle_fid_marg} except 
 here we apply importance sampling 
