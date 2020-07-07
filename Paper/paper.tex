@@ -151,6 +151,7 @@
       where the matrix ${\sf T}$ is the gradient of ${\bf t}$ with respect to $\vN$
       \begin{equation}
         {\sf T}\equiv \left.\frac{d{\bf t}}{d\vN}\right|_{{\bf q},\bar{\vN}}
+        \label{eq:Tmat}
       \end{equation}
       In other words it contains a full information about how all the correlation functions or power spectra respond to a small change in $N(z)$.
 
@@ -183,7 +184,7 @@
         \begin{figure}[ht]
           \centering  
           \includegraphics[width=1.\textwidth]{./corr_CV_0}
-          \caption{Correlation matrix associated to the cosmic-variance contribution to the total $N(z)$ covariance for the first tomographic bin of the HSC data. \todo{Can we make these plots pdfs instead?}}\label{fig:CV}
+          \caption{Correlation matrix associated with the cosmic-variance contribution to the total $N(z)$ covariance for the first tomographic bin of the HSC data.}\label{fig:CV}
         \end{figure}
         The analysis presented in Section \todo{add ref} will make use of a measured redshift distribution estimated from the COSMOS 30-band catalog \todo{add ref}, as was done in \todo{add cite}. The main sources of uncertainty for this measurement are cosmic variance in the COSMOS field, shot noise and additional uncertainty in the photometric redshifts used to assign galaxies to different bins. Here we will associate each of this sources to a separate covariance that will be added in quadrature to form the final ${\sf C}_N$.
         
@@ -353,137 +354,240 @@ Fig. \ref{fig:Nzs}, and the
 \textit{lightblue} dotted lines
 show the power spectra derived via
 Taylor expansion: $C_\ell' = C_\ell +
- {\sf T} \left(\vN' - {\vN} \right)$.
-TODO: put in a table
-Chi2 original model, original cov: 98.97
-Chi2 original model, new cov  89.12
-m1, m1p =  13.05 0.79
-Chi2 original model, smoothed Nz, original cov: 91.33
-Chi2 original model, smoothed Nz, new cov  86.25
-Chi2 perturbed model smooth, original cov: 106.11
-Chi2 perturbed model smooth Nz, new cov  88.37
-Chi2 taylor model smooth nz, original cov: 93.48
-Chi2 taylor model smooth , new cov  86.04
-Ratio of determinants of original precision to CV+noise+smooth precision per dof =  1.145}
+ {\sf T} \left(\vN' - {\vN} \right)$.}
 \label{fig:Cls}
 \end{figure}
 
+\begin{table}
 \begin{center}
- \begin{tabular}{c | c c c} 
+ \begin{tabular}{c | c c } 
  \hline\hline
- Model & HSC covariance & Marginalized covariance \\ [0.5ex] 
+ Model & HSC cov. & Marginalized $N(z)$ cov. \\ [0.5ex] 
  \hline
- Original $N(z)$ evaluated at $C_\ell$ & 98.97 & 88.97 \\ 
+  $\chi^2$, original $N(z)$, evaluated at $C_\ell$ & 98.97 & 88.97 \\ 
 
- Smoothed $N(z)$ evaluated at $C_\ell$ & 91.33 & 86.44 \\
+ $\chi^2$, smoothed $N(z)$, evaluated at $C_\ell$ & 91.33 & 86.44 \\
 
- Perturbed $N(z)$ and evaluated at $C_\ell'$ & 99.78 & 89.57 \\
+ $\chi^2$, perturbed $N(z)$, evaluated at $C_\ell'$ & 99.78 & 89.57 \\
 
- Perturbed $N(z)$ and taylor-expanded at $C_\ell'$ & 100.62 & 89.64 \\
+ $\chi^2$, perturbed $N(z)$, taylor-expanded $C_\ell +
+ {\sf T} \Delta \vN$ & 100.62 & 89.64 \\
  
  \hline
  \hline
 \end{tabular}
 \end{center}
-\caption{m1, m1p =  13.049694172079105 0.787090825781223
-Ratio of determinants of original precision to CV+noise+smooth precision per dof =  1.152427786684794}
+\label{tab:lin}
+\caption{$\chi^2$ values with respect to the HSC data of the four curves shown in Fig. \ref{fig:Cls}. $[\mu_1, \ \mu_{1,p}] =  [13.05, 0.79]$
+Ratio of determinants of original precision to CV+noise+smooth precision per dof =  1.15
+94}
+\end{table}
 
-\begin{itemize}
-  \item Plot showing $T$
-  \item Plot showing exact $C_\ell$ vs linear prediction. \todo{Make your plots into subplots; verify the Tmatrix}
-\end{itemize}{}
+Fig. \ref{fig:Nzs} shows the distribution of the
+photometric redshifts of the HSC data
+
+Fig. \ref{fig:Cls} displays the exact $C_\ell$ vs. 
+linear prediction using the derivative matrix, ${\sf T}$.
+
+In Fig. \ref{fig:Tmat}, we show the
+derivative matrix, ${\sf T}$,
+defined in Eq. \ref{eq:Tmat} for the first tomographic
+bin in the HSC data and its cross-correlations with
+all four bins, i.e. . The rows of the matrix correspond
+to the $\ell$ multipoles, while the columns to the
+redshift samples of $N(z)^1$.
+
+
 \subsection{Impact of N(z) uncertainties on final parameters}
+To study the effect on the covariance matrix
+of the marginalization procedure described in detail
+in sections TODO: CITE, we visualize the original
+correlation matrix and its difference with the
+marginalized matrix in Fig. \ref{fig:fid_marg_cov}. The
+main effects on the original matrix is
+a positive contribution to the off-diagonal entries
+for redshift samples in close proximity. We set the free
+parameters of our model to the following values: 
+$A_{\rm smooth} = 1$, $A_{\rm noise} = 4.$,
+$N_{\rm upsample} = 3$, and $\Delta z_{\rm thresh} = 
+0.06$. These values were chosen so as to reduce the
+$\chi^2$ of the perturbed model 
+using the new covariance matrix when compared with the
+original covariance matrix. The modest value of the
+smoothing parameter, $A_{\rm smooth}$, ensure that we 
+are not oversmoothing the $N(z)$ distribution, while
+the choice of photometric noise as four times 
+larger than the variance in the different photometric
+measures provides a reasonable guess for the expected
+variation in $N(z)$ given the uncertainty.
 
+To assess whether the marginalization procedure 
+proposed in this work provides better constraints
+on the
+6 HOD parameters than the original 14-parameter
+model, we employ the ensemble sampler for Markov
+chain Monte Carlo (MCMC) $\textsc{emcee}$ CITE Goodman 
+\& Weare (2010) and other paper with 6 parameters and
+a walkers' ratio of 6 for 12000 iterations. We assess
+the convergence of the chains with a simple G-R test
+having computed the auto-correlation and thinned the
+chains beforehand. In all cases, we find that the
+chains are reasonably well converged. 
 
+In Fig. \ref{fig:fid_marg_cov}, we show the key 
+comparison between
+
+We can
+see that the full analysis leads to 
+worse constraints on the parameters
+when compared with the marginalized
+covariance. Furthermore, the proximity
+of the \textit{blue} and \textit{red} 
+contours serves both as a sanity check 
+that our method yields physical constraints
+of the 6 parameters (i.e. not exceeding
+the cosmic variance limits) as well as 
+nearly optimal such
+
+We, furthermore, run the following several 
+tests to check the robustness of our result:
+\begin{itemize}
+\item We study the effect of the smoothing
+by turning it off, $A_{\rm smooth} = 0$. 
+\item We vary the choice for the
+diagonal photometric noise parameter
+by increasing it to $A_{\rm noise} = 42$.
+\item We compute the ${\sf T}$ matrix 
+using a different set of 
+HOD parameters perturbed by $1\sigma$
+away from the fiducial ones.
+\end{itemize}
+We show these comparisons with the
+fiducial marginalized $N(z)$ model in Fig.
+\ref{fig:triangle_marg_tests}.
+One can notice that the effect of the
+smoothing on the constraints is minimal,
+while increasing the diagonal noise
+leads to weakening them. Neither of these
+tests changes significantly the
+mean of the posterior distribution.
+On the other hand, offsetting the 
+HOD parameters used in the ${\sf T}$
+matrix computation leads to a shift to
+the mean and a slight widening of the
+contours. That is because the covariance
+matrix used in the analysis no longer
+favors the HOD values preferred by the
+data. This slight tension
+results in sub-par convergence
+of the chains and shifted mean posteriors.
+
+\ref{fig:triangle_fid_marg}
 \begin{figure}[ht]
 \centering
 \begin{subfigure}{.5\textwidth}
   \centering
   \includegraphics[width=1.\linewidth]{./corr_data}
-  \label{fig:sub1}
 \end{subfigure}%
 \begin{subfigure}{.5\textwidth}
   \centering
   \includegraphics[width=1.\linewidth]{./corr_diff}
-  \label{fig:sub2}
 \end{subfigure}
-\caption{Correlation matrix for the fiducial HSC dataset (\textit{left}) and difference with its marginalized version (\textit{right}).}
+\caption{Correlation matrix of the original HSC dataset (\textit{left} panel) and difference between the
+original and the marginalized (this work)
+correlation matrices (\textit{right} panel). Most of the
+effect of marginalizing for the shift and width
+parameters is manifested as a positive contribution
+to the original matrix near the diagonal (i.e. there
+is an increase in correlation for close redshift
+values). Note that we have subtracted the diagonal
+off the two matrices.}
 \label{fig:fid_marg_cov}
 \end{figure}
 
 \begin{figure}[ht]
 \centering  
 \includegraphics[width=1.\textwidth]{./triangle_fid_marg}
-\caption{Triangle plot with constraints of the 6 HOD parameters obtained using the covariance matrix from the full HSC dataset (\textit{red}) and from its marginalized version (\textit{blue}).}
+\caption{Triangle plot with constraints of 
+the 6 HOD parameters obtained using the 
+covariance matrix from the full
+14-parameter original HSC analysis 
+(\textit{gray contours}). The \textit{red
+contours} are obtained by applying
+importance sampling to the full original 
+chain with weights determined by the
+cosmic variance constraints of the
+shift and width parameters. In \textit{blue},
+we show the constraints on the 6 HOD parameters
+obtained using the covariance
+matrix marginalized to account for the
+$N(z)$ uncertainty (i.e. without the
+8 shift and width parameters). We can
+see that the full analysis leads to 
+worse constraints on the parameters
+when compared with the marginalized
+covariance.}
 \label{fig:triangle_fid_marg}
 \end{figure}
 
 \begin{figure}[ht]
 \centering  
 \includegraphics[width=1.\textwidth]{./triangle_marg_tests}
-\caption{Triangle plot with constraints of the 6 HOD parameters obtained using different choices for the marginalized covariance matrix: in \textit{green} is shown the result where the diagonal noise is set to a very large value ($A_{\rm noise} = 42$); in \textit{gray} is shown the case where the marginalization is performed assuming fiducial HOD-model values which are $1\sigma$ away from their posterior mean values taken from \todo{CITE Andrina's paper}; in \textit{red} is shown the case where the smoothing has been removed ($A_{\rm smooth} = 0$); and finally in \textit{blue} is shown the fiducial case with $A_{\rm noise} = 4$ and $A_{\rm smooth} = 0.25$.}
+\caption{Triangle plot with constraints of the 6 HOD parameters obtained using different choices for the marginalized covariance matrix: in \textit{green}, we show the result where the diagonal noise is set to a very large value ($A_{\rm noise} = 42$); in \textit{gray} is shown the case where the marginalization is performed assuming fiducial HOD-model values which are $1\sigma$ away from their posterior mean values taken from \todo{CITE Andrina's paper}; in \textit{red}, we display the case where the smoothing has been removed ($A_{\rm smooth} = 0$); and finally the \textit{blue} contours show the fiducial case with $A_{\rm noise} = 4$ and $A_{\rm smooth} = 1$.}
 \label{fig:triangle_marg_tests}
 \end{figure}
 
-\iffalse
-\begin{figure}[ht]
-\centering  
-\includegraphics[width=1.\textwidth]{./importance_noburn}
-\caption{Same as Fig.
-\ref{fig:triangle_fid_marg} except 
-here we apply importance sampling 
-to the full 14-parameter chain 
-imposing Gaussian priors on the
-shift parameters with variances
-[0.008,0.006,0.006,0.007] and the
-width parameters with
-variances [0.05,0.045,0.04,0.03],
-derived by estimating their
-distribution due to 
-cosmic variance.}
-\label{fig:triangle_fid_marg}
-\end{figure}
-\fi
-
-Plots showing the effects of different things:
-\begin{itemize}
-\item Compare different choices of prior (smoothness, no smoothing, different degrees of noise etc.)
-\item Triangle plot with T matrix computed from a different fiducial.
-\item Compare CV-only covariance vs. no covariance.
-\item Compare old marginalization vs. new one (maybe same plot).
-\item Compare old marginalization with CV priors (importance sample).
-\end{itemize}
-
-Other results:
-\begin{itemize}
-  \item smoothness does nothing
-  \item quote $\chi^2$ values \todo{Make a table}
-\end{itemize}
 
 
 
+\begin{table}
 \begin{center}
- \begin{tabular}{c | c c c} 
+\begin{tabular}{c | c c c c} 
  \hline\hline
- Parameter & HSC covariance, full & HSC covariance, HOD & Marginalized covariance, HOD \\ [0.5ex] 
+ Parameter & HSC cov. [68\%, 95\%] & CV constraints [68\%, 95\%] & Marg. $N(z)$ [68\%, 95\%] \\ [0.5ex] 
  \hline
- $\chi^2/\nu$ & 87.49/80 & 94.97/88 & 91.06/88 \\ 
-
- $\mu_{{\rm min},p}$ & -0.52 & -1.47 & -1.42 \\
-
- $\mu_{\rm min}$ & 11.88 & 11.73 & 11.73 \\
-
- $\mu_{0,p}$ & 1.68 & 4.86 & 5.03 \\
- 
- $\mu_{0}$ & 0.02 & 11.53 & 11.41 \\
-
- $\mu_{1,p}$ & 0.87 & -0.58 & -0.51 \\
-
- $\mu_{1}$ & 13.073 & 12.866 & 12.873 \\ [1ex] 
+ $\chi^2/\nu$ & 87.49/80 & --- & 88.54/88 \\ 
+$\mu_{{\rm min},p}$ & $-0.5^{+1.7}_{-2.0}$, $^{+4.0}_{-4.0}$ & $-0.4^{+1.1}_{-1.4}$, $^{+2.5}_{-2.3}$ & $-0.3^{+1.5}_{-1.8}$, $^{+3.2}_{-2.8}$ \\ [1ex]
+$\mu_{\rm min}$ & $11.90^{+0.26}_{-0.15}$, $^{+0.39}_{-0.46}$ & $11.86^{+0.19}_{-0.16}$, $^{+0.28}_{-0.30}$ & $11.83^{+0.21}_{-0.15}$, $^{+0.32}_{-0.36}$ \\ [1ex]
+$\mu_{0,p}$ & $2.4\pm 4.3$, $^{+7.2}_{-7.0}$ & $2.1^{+4.2}_{-5.1}$, $^{+6.6}_{-7.2}$ & $2.7^{+6.7}_{-4.4}$, $^{+6.9}_{-7.1}$ \\ [1ex]
+$\mu_{0}$ & $5.7\pm 3.3$, $^{+5.5}_{-5.5}$ & $6.1^{+4.6}_{-3.8}$, $^{+5.2}_{-4.8}$ & $5.8\pm 3.4$, $^{+5.5}_{-5.5}$ \\ [1ex]
+$\mu_{1,p}$ & $0.9^{+2.0}_{-2.8}$, $^{+5.1}_{-4.7}$ & $0.9^{+1.3}_{-1.8}$, $^{+3.4}_{-2.9}$ & $1.0^{+1.6}_{-2.6}$, $^{+4.1}_{-3.5}$ \\ [1ex]
+$\mu_{1}$ & $13.10^{+0.30}_{-0.21}$, $^{+0.48}_{-0.54}$ & $13.04\pm 0.21$, $^{+0.38}_{-0.40}$ & $13.00^{+0.25}_{-0.21}$, $^{+0.42}_{-0.44}$ \\ [1ex]
  \hline
  \hline
 \end{tabular}
 \end{center}
+\label{tab:chi2_tests}
+\caption{Table showing the minimum
+$\chi^2$ value as well as the 68\% and 95\% constraints on the 6 HOD parameters
+in three regimes: using the original
+HSC covariance matrix with 14 parameters (6 HOD + 8 $N(z)$ ones),
+importance-sampling the original
+chain to get cosmic variance constraints on the parameters, and finally using the
+marginalized $N(z)$ covariance matrix with the 6 HOD parameters developed in this work.}
+\end{table}
+
+\begin{table}
+\begin{center}
+\begin{tabular}{c | c c c c} 
+ \hline\hline
+ Parameter & Fiducial [68\%, 95\%] & Test 1 [68\%, 95\%] & Test 2 [68\%, 95\%] & Test 3 [68\%, 95\%] \\ [0.5ex] 
+ \hline
+ $\chi^2/\nu$ & 88.54/88 & 87.67/88 & 88.56/88 & 78.61/88 \\ 
+$\mu_{{\rm min},p}$ & $-0.3^{+1.5}_{-1.8}$, $^{+3.2}_{-2.8}$ & $0.0\pm 1.7$, $^{+3.2}_{-3.3}$ & $-0.3^{+1.4}_{-1.8}$, $^{+3.2}_{-2.8}$ & $-0.8^{+1.8}_{-2.1}$, $^{+3.7}_{-3.5}$ \\ [1ex]
+$\mu_{\rm min}$ & $11.83^{+0.21}_{-0.15}$, $^{+0.32}_{-0.36}$ & $11.85^{+0.22}_{-0.13}$, $^{+0.31}_{-0.37}$ & $11.83^{+0.21}_{-0.15}$, $^{+0.33}_{-0.36}$ & $11.76^{+0.26}_{-0.17}$, $^{+0.38}_{-0.43}$ \\ [1ex]
+$\mu_{0,p}$ & $2.7^{+6.7}_{-4.4}$, $^{+6.9}_{-7.1}$ & $2.5\pm 4.3$, $^{+7.1}_{-7.1}$ & $2.5\pm 4.3$, $^{+7.1}_{-7.1}$ & $2.5\pm 4.3$, $^{+7.1}_{-7.1}$ \\ [1ex]
+$\mu_{0}$ & $5.8\pm 3.4$, $^{+5.5}_{-5.5}$ & $5.8^{+3.6}_{-5.2}$, $^{+5.6}_{-5.5}$ & $5.8\pm 3.4$, $^{+5.5}_{-5.5}$ & $5.9\pm 3.4$, $^{+5.5}_{-5.6}$ \\ [1ex]
+$\mu_{1,p}$ & $1.0^{+1.6}_{-2.6}$, $^{+4.1}_{-3.5}$ & $1.5^{+2.1}_{-2.6}$, $^{+4.3}_{-3.9}$ & $0.98^{+1.5}_{-2.5}$, $^{+4.2}_{-3.5}$ & $0.6^{+1.9}_{-2.9}$, $^{+4.6}_{-4.0}$ \\ [1ex]
+$\mu_{1}$ & $13.00^{+0.25}_{-0.21}$, $^{+0.42}_{-0.44}$ & $13.03^{+0.26}_{-0.20}$, $^{+0.41}_{-0.45}$ & $13.00^{+0.25}_{-0.22}$, $^{+0.42}_{-0.44}$ & $12.93^{+0.29}_{-0.24}$, $^{+0.47}_{-0.50}$ \\ [1ex]
+ \hline
+ \hline
+\end{tabular}
+\end{center}
+\label{tab:chi2_tests}
+\caption{Table}
+\end{table}
+
 
 
 \section{Conclusions}
