@@ -690,6 +690,34 @@ $1\sigma$-offset HOD parameters, respectively.}
 
 \section{Conclusions}
 
+In this method we have presented a new method for marginalizing of redshift distribution uncertainties. This method relies by modifying the data covariance matrix by projecting the uncertainties in the redshift distribution to the appropriate data space basis.
+
+
+We have demonstrate this method on the photometric galaxy clustering data from HSC and compared to previous approaches. Method performs as expected without having to include many new parameters in the chain. In general this method is applicable for any 3x2pt analysis and will likely perform even better, because galaxy clustering is considerably more sensitive to redsfhit distributions than weak lensing (since the later has a much wider kernel).
+
+This method relies on two approximations. The first approximation is that first order expansion of theory with respect to the change in redshift distribution is sufficient and second that the matrix of first derivatives can be approximated to be constant over the parameter space of interest. We have explicitly shown that the first approximation is good enough. With improving data, the contours will shrink and this will become even better approximation. The same is true for the second approximation. Note however, that the second approximation could be improved by considering a second order expansion, that would allow us to calculate $T$ as a first order expansion from the fiducial model, i.e.
+\begin{equation}
+        {\sf T} ({{\bf q},\bar{\vN}}) = {\sf T}_{\rm fid} + \left. \frac{\partial \sf T}{\partial {\bf q}}\right|_{{\bf q_{\rm fid}}} \left({\bf q} - {\bf q_{\rm fid}}\right).
+        \label{eq:Tmat}
+\end{equation}
+We leave this for the future work. But in short, these approximations are sufficient and can be further improved if necessary.
+
+
+The most difficult issue is this determination of the covariance matrix $C_N$. In this paper we have considered contributions from the sample variance of COSMOS-30 field and an additional diagonal component given by the scatter between diffierent redshift codes and mutliplied by a ``safety'' factor. With the development of new methods for  photmetric redshifit, characterization of uncertainties will most certainly become an integral part of the photometric redshift estimation. These uncertainties might be characterised either by a covariance matrix (like in this paper) or perhaps with a set of samples drawn from the probability distribution. Even if these samples are not necessarily normal distributed to a good approximation, the implied covariance matrix might still be sufficient to propagate these uncertainties. Again this is something that we leave for the future work.
+
+Finally, in this paper we went through some pain to implement a smoothness prior following the intuition that the true $N(z)$ must be smooth and hence it does not make sense to needlessly  marginalize over non-physical $N(z)$s. As we have shown, the effect is largerly negligible. This is because the high frequency oscillations in $N(z)$ cancel out to a good approximation.
+
+
+
+
+
+
+
+
+
+
+
+
 \appendix
 \section{Oversampling}
 We may want to sub-sample the originally measured $N_{\alpha}$ ($\alpha\in[0,N_z^{\rm coarse})$) into a finer grid $n_{\mu}$ ($\mu\in[0,N_z^{\rm fine})$). This is essentially interpolation, which we can write as a linear operator $n_\mu = O_{\mu\alpha}N_{\alpha}$. The CV covariance of the $n_\mu$ is then given by ${\rm Cov}^{\rm fine}_{\mu\nu}=O_{\mu\alpha}O_{\nu\beta}{\rm Cov}^{\rm coarse}_{\alpha\beta}$.
