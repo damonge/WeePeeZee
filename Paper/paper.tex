@@ -208,7 +208,7 @@
         \end{equation}
         where $\Delta\chi_\alpha$ is the comoving width of the $\alpha$-th histogram bin, $j_0$ is the zero-th order spherical Bessel function and $J_1$ is the order-1 cylindrical Bessel function.
 
-        We assume that the cosmic covariance between the tomographic bins is negligible, so we estimate the cosmic variance covariance matrix by treating each bin independently. We show the resulting correlation matrix of the COSMOS cosmic variance in Fig. \ref{fig:CV}.
+        We assume that the cosmic covariance between the tomographic bins is negligible, so we estimate the cosmic variance covariance matrix by treating each bin independently. We show the resulting correlation matrix of the COSMOS cosmic variance in Fig.~\ref{fig:CV}.
         
         The final contribution, from shot noise, is caused by the discrete nature of galaxies as a tracer of the matter fluctuations, and is simply given by
         \begin{equation}
@@ -307,13 +307,89 @@
 
 \subsection{The HSC dataset}
 The Hyper-Suprime Cam survey is an on-going photometric galaxy survey survey focused mainly on weak gravitational lensing. The analysis in Ref.~\cite{1912.08209} is based on the publicly-available HSC DR1 data, whose so-called wide fields cover approximately 108 square degrees on the sky, subdivided into seven distinct patches. Ref.~\cite{1912.08209} used these data to compute spherical harmonic galaxy clustering power spectra for four tomographic redshift bins between $z=0.15$ and $z=1.5$, taking both auto- and cross-correlations into account. These power spectra have been corrected for observational and extragalactic systematics by deprojection at the map-level \cite{2019MNRAS.484.4127A}. Finally, following Ref.~\cite{2019PASJ...71...43H}, photometric redshift distributions have been estimated by cross-matching HSC galaxies to galaxies in the COSMOS 30-band photometric catalog presented in Ref.~\cite{2016ApJS..224...24L}.
-\subsection{Validating the linear expansion}
+
+\subsection{Validating the linear expansion}\label{ssec:hsc.lin}
+In this section, we study how the linear
+approximation performed via the derivative 
+matrix ${\sf T}$ (defined in Eq. \ref{eq:Tmat})
+compares with the exact calculation. The
+derivative matrix can be seen in Fig.~\ref{fig:Tmat}
+for the first tomographic
+bin and its cross-correlations with
+all four bins in the HSC data, 
+i.e. the tomographic pairs [1,1], [1,2],
+[1,3], and [1,4]. The rows of the matrix correspond
+to the $\ell$ multipoles available for each pair, 
+while the columns to the 300 equally
+spaced redshift samples of $N(z)$
+between $z = 0$ and $z = 4$. We can notice that
+as we move to pairs with bins at higher redshifts,
+the peak of the matrix appears at different locations:
+namely, the high-$\ell$ high-$z$ regions of the matrix.
+In the $z$ direction, these coincide with the maxima
+of the photometric redshifts of the HSC data, shown in
+Fig.~\ref{fig:Nzs}. Furthermore, we illustrate the
+effect of the smoothing prior (see 
+Section~\ref{sssec:theory.prior.smooth})
+on the $N(z)$ distributions as well as a perturbed $N(z)$
+set, obtained by adding the noise as
+a Gaussian random draw from the new marginalized $N(z)$ covariance matrix to the smoothed $N(z)$'s.
+The corresponding angular power spectra, $C_\ell$,
+for the three cases are shown in Fig.~\ref{fig:Cls}
+in their respective colors. Furthermore, 
+Fig.~\ref{fig:Cls} illustrates the comparison
+between the exact $C_\ell$'s (\textit{yellow line}) with 
+the linear prediction using the derivative matrix, ${\sf T}$,
+(\textit{dotted light-blue line}). We find that the
+two are in reasonably good agreement provided the current 
+dataset degree of precision. See Appendix B \todo{to be done} 
+for a short explanation of
+why the auto-correlation cannot be well-approximated
+using linear expansion. The $\chi^2$ values for all four
+curves with respect to the HSC data are shown in Table~
+\ref{tab:lin}. Comparing the $\chi^2$ 
+values for the original and smoothed $N(z)$ distributions,
+we notice that they decrease for both the
+HSC covariance matrix and also for the marginalized one.
+As expected, perturbing the photometric distributions
+gets penalized, but the change in the $\chi^2$ value
+is much larger for the original HSC covariance, which
+indicates that the marginalized covariance is more lenient in
+allowing small (and expected) $N(z)$ fluctuations.
+The difference between the last two lines suggests 
+that the Taylor expansion works sufficiently well,
+as the difference in $\chi^2$ is negligible. Finally,
+comparing the $\chi^2$ for the new
+and old covariances, we are led to conclude that the
+new covariance provides a better fit to the data.
+We note that we have fixed the values of
+all the shift and width parameter to be zero and set the
+6 HOD parameters to their \textbf{fiducial}
+values of:
+\begin{itemize}
+    \item $\mu_{\rm min} = 11.88$, $\mu_{\rm min,p} = -0.5$,
+    \item $\mu_{\rm 0} = 5.7$, $\mu_{\rm 0,p} = 2.5$,
+    \item $\mu_{\rm 1} = 13.08$, $\mu_{\rm 1,p} = 0.9$.
+\end{itemize}
+These HOD values
+are selected to match the 6 posterior means reported in Ref.
+\cite{1912.08209}. For the smoothed and perturbed
+$N(z)$ values only, we minimize the likelihood to find the best
+fit values for the 2 HOD parameters $\mu_1$ and $\mu_{1,p}$,
+obtaining 13.05 and 0.79, respectively. The ratio of 
+the original HSC precision matrix to the marginalized $N(z)$ 
+one is  $1.15^{\nu_{\rm tot}}$, where $\nu_{\rm tot} = 94$ is the number of total
+degrees of freedom of the system (i.e. size of the $C_\ell$
+vector for all cross correlations between the tomographic bins).
 
 
 \begin{figure}[ht]
 \centering  
 \includegraphics[width=1.\textwidth]{./Tmat}
-\caption{Visualization of the derivative matrix $T_{mn} = {\partial t_m}/{\partial N_n}$. \todo{Make look nicer: split into tomo bins}} 
+\caption{Visualization of the linear derivative matrix ${\sf T}
+= {\partial \vt}/{\partial \vN}$ divided by the angular power
+spectrum $C_{\ell}$ for all cross-correlation pairs between
+the first tomographic bin and all four others.} 
 \label{fig:Tmat}
 \end{figure}
 
@@ -325,13 +401,13 @@ distributions $N(z)$
 of the four tomographic HSC bins.
 The \textit{red} curves show the
 default values used in the 
-full HSC analysis (CITE Andrina),
+full HSC analysis \cite{1912.08209},
 while the \textit{blue} curves 
 show their smoothed and upsampled 
 version used in this work. The
 \textit{green} show a random 
 Gaussian draw from the smoothing 
-prior described in Section TODO: Section}
+prior described in Section~\ref{sssec:theory.prior.smooth}.}
 \label{fig:Nzs}
 \end{figure}
 
@@ -339,18 +415,19 @@ prior described in Section TODO: Section}
 \centering  
 \includegraphics[width=1.\textwidth]{./Cls}
 \caption{Galaxy power spectrum, $C_\ell^{gg}$, between the four
-tomographic bins. The \textit{black} curves show the HSC-measured
+tomographic bins. The \textit{black} curves illustrate the HSC-measured
 power spectrum and error bars, while the
-\textit{red} curves present the $C_\ell$s
-computed using the posterior mean values of the 6 HOD parameters from the
-full HSC analysis (CITE Andrina). In 
-\textit{green} is shown the power
+\textit{red} curves show the $C_\ell$s
+computed using the posterior mean values
+of the 6 HOD parameters from the
+full HSC analysis \cite{1912.08209}. In 
+\textit{green}, we show the angular power
 spectrum obtained by using the smoothed
-$N(z)$ distributions (see Fig. \ref{fig:Nzs}). The \textit{blue}
+$N(z)$ distributions (see Fig.~\ref{fig:Nzs}). The \textit{blue}
 curves correspond to the exact
 calculation of the $C_\ell$s using the
 perturbed $N(z)$ values in
-Fig. \ref{fig:Nzs}, and the 
+Fig.~\ref{fig:Nzs}, and the 
 \textit{lightblue} dotted lines
 show the power spectra derived via
 Taylor expansion: $C_\ell' = C_\ell +
@@ -377,44 +454,44 @@ Taylor expansion: $C_\ell' = C_\ell +
  \hline
 \end{tabular}
 \end{center}
+\caption{$\chi^2$ values with respect to the HSC data of the 
+four curves shown in Fig.~\ref{fig:Cls} using the original 
+covariance used in the HSC analysis and the marginalized
+$N(z)$ covariance developed in this work.}
 \label{tab:lin}
-\caption{$\chi^2$ values with respect to the HSC data of the four curves shown in Fig. \ref{fig:Cls}. $[\mu_1, \ \mu_{1,p}] =  [13.05, 0.79]$
-Ratio of determinants of original precision to CV+noise+smooth precision per dof =  1.15
-94}
 \end{table}
 
-Fig. \ref{fig:Nzs} shows the distribution of the
-photometric redshifts of the HSC data
-
-Fig. \ref{fig:Cls} displays the exact $C_\ell$ vs. 
-linear prediction using the derivative matrix, ${\sf T}$.
-
-In Fig. \ref{fig:Tmat}, we show the
-derivative matrix, ${\sf T}$,
-defined in Eq. \ref{eq:Tmat} for the first tomographic
-bin in the HSC data and its cross-correlations with
-all four bins, i.e. . The rows of the matrix correspond
-to the $\ell$ multipoles, while the columns to the
-redshift samples of $N(z)^1$.
-
-
 \subsection{Impact of N(z) uncertainties on final parameters}
+In this section, we summarize the main results of this
+paper, showing in particular the effect of marginalization
+of the photometric uncertainties on the resulting constraints
+of cosmological parameters of interest. In our particular
+case, these are the 6 HOD parameters described in the model
+in Section~\ref{ssec:hsc.theory}. The marginalized $N(z)$ 
+covariance is computed
+assuming a fiducial set of values for the HOD parameters
+listed in the previous section.
+
 To study the effect on the covariance matrix
 of the marginalization procedure described in detail
-in sections TODO: CITE, we visualize the original
+in Section~\ref{ssec:theory.nz_new}, we visualize the original
 correlation matrix and its difference with the
-marginalized matrix in Fig. \ref{fig:fid_marg_cov}. The
-main effects on the original matrix is
+marginalized matrix in Fig.~\ref{fig:fid_marg_cov}. The
+main difference with the original matrix is
 a positive contribution to the off-diagonal entries
 for redshift samples in close proximity. We set the free
 parameters of our model to the following values: 
-$A_{\rm smooth} = 1$, $A_{\rm noise} = 4.$,
-$N_{\rm upsample} = 3$, and $\Delta z_{\rm thresh} = 
-0.06$. These values were chosen so as to reduce the
+\begin{itemize}
+    \item $A_{\rm smooth} = 1$, 
+    \item $A_{\rm noise} = 4.$,
+    \item $N_{\rm upsample} = 3$, 
+    \item $\Delta z_{\rm thresh} = 0.06$.
+\end{itemize}
+These values were chosen so as to reduce the
 $\chi^2$ of the perturbed model 
 using the new covariance matrix when compared with the
 original covariance matrix. The modest value of the
-smoothing parameter, $A_{\rm smooth}$, ensure that we 
+smoothing parameter, $A_{\rm smooth}$, ensures that we 
 are not oversmoothing the $N(z)$ distribution, while
 the choice of photometric noise as four times 
 larger than the variance in the different photometric
@@ -423,52 +500,60 @@ variation in $N(z)$ given the uncertainty.
 
 To assess whether the marginalization procedure 
 proposed in this work provides better constraints
-on the
-6 HOD parameters than the original 14-parameter
-model, we employ the ensemble sampler for Markov
-chain Monte Carlo (MCMC) $\textsc{emcee}$ CITE Goodman 
-\& Weare (2010) and other paper with 6 parameters and
-a walkers' ratio of 6 for 12000 iterations. We assess
-the convergence of the chains with a simple G-R test
-having computed the auto-correlation and thinned the
-chains beforehand. In all cases, we find that the
-chains are reasonably well converged. 
+on the 6 HOD parameters than the original 14-parameter
+model, we employ the MCMC ensemble sampler
+$\textbf{emcee}$ \cite{2013PASP..125..306F}
+setting the
+ walkers' ratio to 6 and
+ the number of iterations to 12000. We test
+the convergence of the chains using a simple Gelman-Rubin convergence diagnostic
+after analyzing the auto-correlation statistics and thinning the
+chains appropriately. In all cases, we find that the
+chains are reasonably well converged,
+which gives more credibility to the 
+conclusions we draw.
 
-In Fig. \ref{fig:fid_marg_cov}, we show the key 
-comparison between
-
-We can
-see that the full analysis leads to 
-worse constraints on the parameters
+In Fig.~\ref{fig:fid_marg_cov} and Table~\ref{tab:chi2_fid},
+we illustrate the key  comparison between the original HSC
+covariance matrix and the marginalized
+one developed in this paper. One can
+notice that the full analysis (\textit{in gray}) leads to 
+suboptimal constraints on the parameters
 when compared with the marginalized
-covariance. Furthermore, the proximity
+covariance (\textit{in blue}) in almost all cases
+except for those HOD parameters which are poorly
+constrained by the HSC dataset. 
+Furthermore, the proximity
 of the \textit{blue} and \textit{red} 
 contours serves both as a sanity check 
 that our method yields physical constraints
 of the 6 parameters (i.e. not exceeding
-the cosmic variance limits) as well as 
-nearly optimal such
+the cosmic variance limits) while at the same time 
+nearly optimal such (as 
+our inferences are always limited
+by cosmic variance).
 
-We, furthermore, run the following several 
-tests to check the robustness of our result:
+To check the robustness of our result, we furthermore
+run the following several tests:
 \begin{itemize}
-\item We study the effect of the smoothing
+\item[\textbf{Test 1}:] We study the effect of the smoothing
 by turning it off, $A_{\rm smooth} = 0$. 
-\item We vary the choice for the
+\item[\textbf{Test 2}:] We vary the choice for the
 diagonal photometric noise parameter
-by increasing it to $A_{\rm noise} = 42$.
-\item We compute the ${\sf T}$ matrix 
+by increasing it ten-fold, $A_{\rm noise} = 42$.
+\item[\textbf{Test 3}:] We compute the ${\sf T}$ matrix 
 using a different set of 
 HOD parameters perturbed by $1\sigma$
-away from the fiducial ones.
+relative to the \textbf{fiducial} ones (listed in Section \ref{ssec:hsc.lin}).
 \end{itemize}
-We show these comparisons with the
+We show the comparisons between
+these three tests and the
 fiducial marginalized $N(z)$ model in Fig.
-\ref{fig:triangle_marg_tests}.
+\ref{fig:triangle_marg_tests} and Table~\ref{tab:chi2_tests}.
 One can notice that the effect of the
-smoothing on the constraints is minimal,
+smoothing on the constraints is negligible,
 while increasing the diagonal noise
-leads to weakening them. Neither of these
+weakens them. Neither of these
 tests changes significantly the
 mean of the posterior distribution.
 On the other hand, offsetting the 
@@ -482,7 +567,6 @@ data. This slight tension
 results in sub-par convergence
 of the chains and shifted mean posteriors.
 
-\ref{fig:triangle_fid_marg}
 \begin{figure}[ht]
 \centering
 \begin{subfigure}{.5\textwidth}
@@ -533,7 +617,7 @@ covariance.}
 \begin{figure}[ht]
 \centering  
 \includegraphics[width=1.\textwidth]{./triangle_marg_tests}
-\caption{Triangle plot with constraints of the 6 HOD parameters obtained using different choices for the marginalized covariance matrix: in \textit{green}, we show the result where the diagonal noise is set to a very large value ($A_{\rm noise} = 42$); in \textit{gray} is shown the case where the marginalization is performed assuming fiducial HOD-model values which are $1\sigma$ away from their posterior mean values taken from \todo{CITE Andrina's paper}; in \textit{red}, we display the case where the smoothing has been removed ($A_{\rm smooth} = 0$); and finally the \textit{blue} contours show the fiducial case with $A_{\rm noise} = 4$ and $A_{\rm smooth} = 1$.}
+\caption{Triangle plot with constraints of the 6 HOD parameters obtained using different choices for the marginalized covariance matrix: in \textit{green}, we show the result where the diagonal noise is set to a very large value ($A_{\rm noise} = 42$); in \textit{gray} is shown the case where the marginalization is performed assuming fiducial HOD-model values which are $1\sigma$ away from their posterior mean values taken from Ref.~\cite{1912.08209}; in \textit{red}, we display the case where the smoothing has been removed ($A_{\rm smooth} = 0$); and finally the \textit{blue} contours show the fiducial case with $A_{\rm noise} = 4$ and $A_{\rm smooth} = 1$.}
 \label{fig:triangle_marg_tests}
 \end{figure}
 
@@ -557,14 +641,19 @@ $\mu_{1}$ & $13.10^{+0.30}_{-0.21}$, $^{+0.48}_{-0.54}$ & $13.04\pm 0.21$, $^{+0
  \hline
 \end{tabular}
 \end{center}
-\label{tab:chi2_tests}
-\caption{Table showing the minimum
-$\chi^2$ value as well as the 68\% and 95\% constraints on the 6 HOD parameters
-in three regimes: using the original
-HSC covariance matrix with 14 parameters (6 HOD + 8 $N(z)$ ones),
+\caption{Minimum $\chi^2$ values (divided by the degrees
+of freedom) reached in each of the three MCMC runs
+and [68\%, 95\%] constraints on the 6 HOD parameters
+in the following scenarios: 1) adopting the original
+HSC covariance matrix with 14 
+parameters (6 HOD + 8 $N(z)$ ones), 2)
 importance-sampling the original
-chain to get cosmic variance constraints on the parameters, and finally using the
-marginalized $N(z)$ covariance matrix with the 6 HOD parameters developed in this work.}
+chain to get cosmic variance constraints on 
+the parameters, and 3) using the
+marginalized $N(z)$ covariance matrix
+developed in this work to constrain
+the 6 HOD parameters.}
+\label{tab:chi2_fid}
 \end{table}
 
 \begin{table}
@@ -584,8 +673,16 @@ $\mu_{1}$ & $13.00^{+0.25}_{-0.21}$, $^{+0.42}_{-0.44}$ & $13.03^{+0.26}_{-0.20}
  \hline
 \end{tabular}
 \end{center}
+\caption{Minimum $\chi^2$ values (divided by the degrees
+of freedom) attained in each of the four MCMC runs
+and [68\%, 95\%] constraints on the 6 HOD parameters. The
+``fiducial'' column displays the results for the marginalized
+$N(z)$ covariance matrix adopting the fiducial parameter
+choices described in the text, while the three tests
+refer to the marginalized $N(z)$ covariance matrix
+obtained with no smoothing, large diagonal noise and
+$1\sigma$-offset HOD parameters, respectively.}
 \label{tab:chi2_tests}
-\caption{Table}
 \end{table}
 
 
