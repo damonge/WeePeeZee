@@ -34,7 +34,7 @@ lmax = [2170.58958919, 2515.39193451, 3185.36076391, 4017.39370804]
 # choice for noise and smoothing
 #noi_fac, dz_thr, pert, A_smooth, upsample, cov_cv = 42., 0.04, 'cov', 1., 3, True
 #noi_fac, dz_thr, pert, A_smooth, upsample, cov_cv = 4., 0.04, 'cov', 1., 3, True
-noi_fac, dz_thr, pert, A_smooth, upsample, cov_cv = 4., 0.06, 'cov', 1., 3, True
+noi_fac, dz_thr, pert, A_smooth, upsample, cov_cv = 4., 0.06, 'cov', 1., int(sys.argv[3]), True
 
 #noi_fac, A_smooth, pert = 42., 0.1, 'cov'
 #noi_fac, A_smooth, pert = 4000., 0.03, 'cov'
