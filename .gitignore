@@ -2,3 +2,8 @@
 *.pyc
 figs/
 *.png
+*.tex
+*.txt
+txt/
+*.npy
+*.sh

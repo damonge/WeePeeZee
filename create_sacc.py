@@ -193,17 +193,6 @@ prec_n = s_n.precision.getPrecisionMatrix()
 cl_theory = get_theory(s_d,s_noi,hod_params,Z_params,HMCorrection)
 cl_theory_s = get_theory(s_m,s_noi,hod_params,Z_params,HMCorrection)
 
-
-
-
-# xar = np.arange(len(cl_theory))
-# errv = np.sqrt(s_d.precision.getCovarianceMatrix().diagonal())
-# #plt.plot(xar,cl_theory,'b-')
-# plt.errorbar(xar,(s_d.mean.vector-cl_theory)/errv)
-
-# plt.show()
-
-
 di = s_d.mean.vector - cl_theory
 chi2o = get_chi2(di,prec_o)
 chi2n = get_chi2(di,prec_n)
@@ -274,10 +263,12 @@ else:
 print ("Sanity: ",np.dot(dNz,np.dot(np.linalg.inv(prior_cov),dNz)))
 
 
-
-    
-
-if True:
+np.save("z_arr_up.npy",zaru)
+np.save("z_arr.npy",zar)
+np.save("Nz.npy",Nz)
+np.save("Nz_s.npy",Nz_s)
+np.save("Nz_p.npy",NzP)
+if False:
     fig, ax = plt.subplots(4,1, facecolor="w",
             gridspec_kw={"hspace": 0.0},
             figsize=(10, 6))
@@ -330,9 +321,12 @@ log_det_prec_CVnoismo = np.linalg.slogdet(prec_CVnoismo)[1]
 ratio_det_CVnoismo = log_det_prec-log_det_prec_CVnoismo
 ratio_det_CVnoismo = np.exp(ratio_det_CVnoismo)
 print("Ratio of determinants of original precision to CV+noise+smooth precision per dof = ", ratio_det_CVnoismo**(1./dof))
-# for the test data, the answer used to be ~1.12 and is now ~1.3 with COADD
 
-if True:
+np.save("cl_theory.npy",cl_theory)
+np.save("cl_theory_s.npy",cl_theory_s)
+np.save("cl_theory_perturbed.npy",cl_theory_perturbed)
+np.save("cl_theory_taylor.npy",cl_theory_taylor)
+if False:
     fig, ax = plt.subplots(4,4, facecolor="w",
             gridspec_kw={"hspace": 0.0, "wspace":0},
             figsize=(10, 10))
@@ -358,11 +352,3 @@ if True:
     ax[0,3].legend(frameon=False)
     plt.savefig('fig2.png')
     plt.show()
-
-    #plt.plot(cl_theory/cl_theory)
-    #plt.plot(cl_theory_s/cl_theory)
-    #plt.plot(cl_theory_perturbed/cl_theory)
-    #plt.plot(cl_theory_taylor/cl_theory)
-    #plt.show()
-
-
