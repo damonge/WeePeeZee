@@ -89,7 +89,7 @@ print("\\begin{tabular}{c | c c c c} ")
 print(" \\hline\\hline")
 print(" Parameter & HSC cov. [68\%, 95\%] & CV constraints [68\%, 95\%] & Marg. $N(z)$ [68\%, 95\%] \\\\ [0.5ex] ")
 print(" \\hline")
-print(" $\\chi^2/\\nu$ & 87.49/80 & SUBSTITUTE ME & 88.54/88 \\\\ ")
+print(" $\\chi^2/\\nu$ & 87.49/80 & 88.29/80 & 88.54/88 \\\\ ")
 margs = [fiducial_hsc, CV_hsc, marg_hsc]
 print_bounds(margs)
 print(" \\hline")

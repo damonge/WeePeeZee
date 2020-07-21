@@ -8,6 +8,7 @@ s_noi = sacc.SACC.loadFromHDF(dir_read+"/noi_bias.sacc")
 shot_noise = s_noi.mean.vector
 cov = s_d.precision.getCovarianceMatrix()
 upsample = 3
+lw = 2.5
 
 import plotparams
 plotparams.buba()
@@ -27,9 +28,9 @@ fig, ax = plt.subplots(4,1, facecolor="w",
 for i in range(4):
     li = i*100
     hi = li+100
-    ax[i].plot(zar,Nz[li:hi],cs[0])
-    ax[i].plot(zaru,Nz_s[li*upsample:hi*upsample],cs[1])
-    ax[i].plot(zaru,NzP[li*upsample:hi*upsample],cs[2])
+    ax[i].plot(zar,Nz[li:hi],lw=lw,c=cs[0])
+    ax[i].plot(zaru,Nz_s[li*upsample:hi*upsample],ls='--',lw=lw,c=cs[1])
+    ax[i].plot(zaru,NzP[li*upsample:hi*upsample],ls='--',lw=lw,c=cs[2])
     ax[i].set_xlim(0,2.6)
     ax[i].set_ylabel(r'$N_%i (z)$'%(i+1))
 
@@ -41,7 +42,6 @@ ax[0].plot([],[],cs[1],label='smoothed')
 ax[0].plot([],[],cs[2],label='perturbed')
 ax[0].legend(ncol=3)
 plt.savefig('Paper/Nzs.pdf')
-
 plt.close()
 
 
