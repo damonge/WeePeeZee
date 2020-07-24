@@ -30,7 +30,7 @@ for i in range(4):
     hi = li+100
     ax[i].plot(zar,Nz[li:hi],lw=lw,c=cs[0])
     ax[i].plot(zaru,Nz_s[li*upsample:hi*upsample],ls='--',lw=lw,c=cs[1])
-    ax[i].plot(zaru,NzP[li*upsample:hi*upsample],ls='--',lw=lw,c=cs[2])
+    ax[i].plot(zaru,NzP[li*upsample:hi*upsample],ls='-',lw=lw,c=cs[2])
     ax[i].set_xlim(0,2.6)
     ax[i].set_ylabel(r'$N_%i (z)$'%(i+1))
 
@@ -38,7 +38,7 @@ for i in range(4):
         ax[i].xaxis.set_ticklabels([])
 ax[3].set_xlabel(r'$z$')
 ax[0].plot([],[],cs[0],label='original')
-ax[0].plot([],[],cs[1],label='smoothed')
+ax[0].plot([],[],ls='--',c=cs[1],label='smoothed')
 ax[0].plot([],[],cs[2],label='perturbed')
 ax[0].legend(ncol=3)
 plt.savefig('Paper/Nzs.pdf')

@@ -7,3 +7,4 @@ figs/
 txt/
 *.npy
 *.sh
+*.yaml
