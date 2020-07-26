@@ -22,6 +22,7 @@ Nz = np.load("data_figs/Nz.npy")
 Nz_s = np.load("data_figs/Nz_s.npy")
 NzP = np.load("data_figs/Nz_p.npy")
 
+
 fig, ax = plt.subplots(4,1, facecolor="w",
           gridspec_kw={"hspace": 0.0},
           figsize=(14, 10))
@@ -51,7 +52,7 @@ cl_theory_perturbed = np.load("data_figs/cl_theory_perturbed.npy")-shot_noise
 cl_theory_taylor = np.load("data_figs/cl_theory_taylor.npy")-shot_noise
 
 fig, ax = plt.subplots(4,4, facecolor="w",
-        gridspec_kw={"hspace": 0.0, "wspace":0},
+        gridspec_kw={"hspace": 0., "wspace":0.4},#0.
         figsize=(23, 16))
 data = s_d.mean.vector-shot_noise
 err = np.sqrt(cov.diagonal())
@@ -68,13 +69,22 @@ for i in range(4):
             cax.plot(ell,well*cl_theory_s[ndx],c=cs[1])
             cax.plot(ell,well*cl_theory_perturbed[ndx],c=cs[2])
             cax.plot(ell,well*cl_theory_taylor[ndx],c=cs[3],ls=':')
-            cax.errorbar(ell,data[ndx]*well,yerr=err[ndx]*well,fmt='ko-')
+            # HSC data
+            #cax.errorbar(ell,data[ndx]*well,yerr=err[ndx]*well,fmt='ko-')
+            '''
+            # If no space between subplots, i.e. wspace = 0.
             if i > 0:
                 cax.yaxis.set_ticklabels([])
+                cax.set_ylim(ax[j,0].get_ylim()) # lol, makes things empty -- too different
             else:
                 cax.set_ylabel(r'$C_{\ell} \ \ell^{1.2}$')
+            '''
+            # if including wspace
+            if i == 0: cax.set_ylabel(r'$C_{\ell} \ \ell^{1.2}$')
             if j == 3:
                 cax.set_xlabel(r'$\ell$')
+            else:
+                cax.xaxis.set_ticklabels([])
             cax.legend(frameon=False,loc='upper right')
         else:
             cax.yaxis.set_ticklabels([])
@@ -90,7 +100,8 @@ ax[0,3].plot([],[],cs[0],label=r'original $N(z)$, $C_\ell$')
 ax[0,3].plot([],[],cs[1],label=r'smoothed $N(z)$, $C_\ell$')
 ax[0,3].plot([],[],cs[2],label=r"perturbed $N(z)$, $C_\ell'$")
 ax[0,3].plot([],[],cs[3],ls=':',label=r'perturbed $N(z)$, $C_\ell + {\sf T} \Delta \mathbf{N}$')
-ax[0,3].errorbar([],[],yerr=[],fmt='ko-',label=r'HSC data')
+# HSC data
+#ax[0,3].errorbar([],[],yerr=[],fmt='ko-',label=r'HSC data')
 ax[0,3].legend(frameon=False)
 plt.savefig('Paper/Cls.pdf')
 plt.close()

@@ -42,7 +42,6 @@ noi_fac, dz_thr, pert, A_smooth, upsample, cov_cv = 4., 0.06, 'cov', 1., int(sys
 #noi_fac, A_smooth, pert = 42., 0.0, 'shiftone'
 #noi_fac, A_smooth, pert = 420., 0.0, 'shiftall'
 
-
 # Cosmological parameters
 # Checked cosmo_params are the same as what the MCMC chain fixes for them
 cosmo_params = {'n_s': 0.9649,
@@ -221,6 +220,7 @@ if want_mini:
     res = minimize(smooth_chi2, x0, method='powell',\
                    options={'xtol': xtol, 'disp': True})
     m1, m1p = res.x
+
     #m1, m1p = 13.041574051253585, 0.7820088517924304
     print("m1, m1p = ",m1,m1p)
     new_hod_params = hod_params.copy()
@@ -233,8 +233,6 @@ chi2o = get_chi2(di,prec_o)
 chi2n = get_chi2(di,prec_n)
 print ("Chi2 original model, smoothed Nz, original cov:", chi2o, dof)
 print ("Chi2 original model, smoothed Nz, new cov ", chi2n)
-
-
 
 
 #Lets perturb dNz, draw from prior_cov
@@ -263,11 +261,11 @@ else:
 print ("Sanity: ",np.dot(dNz,np.dot(np.linalg.inv(prior_cov),dNz)))
 
 
-np.save("z_arr_up.npy",zaru)
-np.save("z_arr.npy",zar)
-np.save("Nz.npy",Nz)
-np.save("Nz_s.npy",Nz_s)
-np.save("Nz_p.npy",NzP)
+np.save("data_figs/z_arr_up.npy",zaru)
+np.save("data_figs/z_arr.npy",zar)
+np.save("data_figs/Nz.npy",Nz)
+np.save("data_figs/Nz_s.npy",Nz_s)
+np.save("data_figs/Nz_p.npy",NzP)
 if False:
     fig, ax = plt.subplots(4,1, facecolor="w",
             gridspec_kw={"hspace": 0.0},
@@ -322,10 +320,10 @@ ratio_det_CVnoismo = log_det_prec-log_det_prec_CVnoismo
 ratio_det_CVnoismo = np.exp(ratio_det_CVnoismo)
 print("Ratio of determinants of original precision to CV+noise+smooth precision per dof = ", ratio_det_CVnoismo**(1./dof))
 
-np.save("cl_theory.npy",cl_theory)
-np.save("cl_theory_s.npy",cl_theory_s)
-np.save("cl_theory_perturbed.npy",cl_theory_perturbed)
-np.save("cl_theory_taylor.npy",cl_theory_taylor)
+np.save("data_figs/cl_theory.npy",cl_theory)
+np.save("data_figs/cl_theory_s.npy",cl_theory_s)
+np.save("data_figs/cl_theory_perturbed.npy",cl_theory_perturbed)
+np.save("data_figs/cl_theory_taylor.npy",cl_theory_taylor)
 if False:
     fig, ax = plt.subplots(4,4, facecolor="w",
             gridspec_kw={"hspace": 0.0, "wspace":0},

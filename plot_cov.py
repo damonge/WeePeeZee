@@ -12,7 +12,7 @@ def cov2corr(covmat,nodiag=True):
         corrmat = covmat/np.sqrt(np.diag(covmat)[None,:]*np.diag(covmat)[:,None])
     return corrmat
     
-def plot2d(data,which,logscale=False,lim=None,aspect=1,save=True,levels=None,clip=0,clbar=True,cm=None,label=None,labsize=14,extent=None,ticksize=12,*args):
+def plot2d(data,which,want_axis=True,logscale=False,lim=None,aspect=1,save=True,levels=None,clip=0,clbar=True,cm=None,label=None,labsize=14,extent=None,ticksize=12,*args):
     # origin at upper left
     if label is not None:
         xlabel, ylabel = label
@@ -34,6 +34,9 @@ def plot2d(data,which,logscale=False,lim=None,aspect=1,save=True,levels=None,cli
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.gca().set_aspect(aspect)
+    if not want_axis:
+        plt.gca().xaxis.set_ticklabels([])
+        plt.gca().yaxis.set_ticklabels([])
     plt.colorbar(im,fraction=0.1, pad=0.02)
     if save: plt.savefig("Paper/"+which+".pdf"); plt.close()
 
@@ -58,6 +61,10 @@ s_m = sacc.SACC.loadFromHDF("data/"+dir_write+"/power_spectra_wdpj.sacc")
 cov_d = s_d.precision.getCovarianceMatrix()
 cov_m = s_m.precision.getCovarianceMatrix()
 
+
+dof = np.trace(np.dot((cov_d),np.linalg.inv(cov_m)))
+print(dof)
+
 # get the cls
 Cl_fid = s_d.mean.vector
 Cl_marg = s_m.mean.vector
@@ -75,6 +82,7 @@ ndx = ndx[0]
 # labels
 xlabel = r'$z$'
 ylabel = r'$\ell$'
+cov_label = r'$C_{\ell}^{i,j}$'
 cm = 'Reds'
 
 want_evals = 0
@@ -86,18 +94,21 @@ if want_evals:
     plt.savefig("eigs.png")
     plt.close()
 
-want_cov = 0
+want_cov = 1
 if want_cov:
     # Get the corr matrices
     corr_d = cov2corr(cov_d)
     corr_m = cov2corr(cov_m)
 
-    label = [xlabel,xlabel]
-    
+    label = [cov_label,cov_label]
+    #ext = [zs[0],zs[-1],zs[-1],zs[0]]
+    ext = [-0.5,10.5,10.5,-0.5]
+    plt.figure(figsize=(8,8))
     # Plot the corr mats
-    plot2d(corr_d,'corr_data',extent=[zs[0],zs[-1],zs[-1],zs[0]],label=label,cm=cm)
+    plot2d(corr_d,'corr_data',want_axis=0,extent=ext,label=label,cm=cm)
+    plt.figure(figsize=(8,8))
     #plot2d(corr_m,'corr_marg')
-    plot2d(corr_m-corr_d,'corr_diff',extent=[zs[0],zs[-1],zs[-1],zs[0]],label=label,cm=cm)
+    plot2d(corr_m-corr_d,'corr_diff',want_axis=0,extent=ext,label=label,cm=cm)
 
 want_CV = 0
 if want_CV:
@@ -106,10 +117,11 @@ if want_CV:
     cov_CV = np.load("og_npy/cov_CV_COADDED.npy")
     corr_CV = cov2corr(cov_CV,nodiag=True)
     label = [xlabel,xlabel]
+    ext = [zs[0],zs[-1],zs[-1],zs[0]]
     #plot2d(corr_CV,'corr_CV')
-    plot2d(corr_CV[:(i_bin+1)*100*upsample,:(i_bin+1)*100*upsample],'corr_CV_%i'%(i_bin),extent=[zs[0],zs[-1],zs[-1],zs[0]],label=label,cm=cm)
+    plot2d(corr_CV[:(i_bin+1)*100*upsample,:(i_bin+1)*100*upsample],'corr_CV_%i'%(i_bin),extent=ext,label=label,cm=cm)
 
-want_Tmat = 1
+want_Tmat = 0
 if want_Tmat:
     # Plot the T matrix
     Tmat = np.load("Tmat_"+dir_read+"_%i.npy"%(upsample)).T
