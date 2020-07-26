@@ -109,6 +109,6 @@ print("\\end{table}")
 g = plots.getSubplotPlotter()
 g.settings.legend_fontsize = 20
 g.settings.scaling_factor = 0.1
-g.triangle_plot([fiducial_hsc,marg_hsc,CV_hsc],params=HOD_pars,legend_labels=[lab_fid,lab_marg,lab_CV],filled=True)
+g.triangle_plot([fiducial_hsc,marg_hsc,CV_hsc],params=HOD_pars,legend_labels=[lab_fid,lab_marg,lab_CV],colors=['gray','#006FED','#E03424'],filled=True)
 plt.savefig("../Paper/"+filename)
 plt.close()
